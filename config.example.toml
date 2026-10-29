@@ -1,0 +1,65 @@
+# Lives at %APPDATA%\lpctl\config.toml (created automatically on first run).
+# The app rewrites this file when settings change, so comments are lost.
+
+[device]
+port_name = "Launchpad Mini"   # substring match on the MIDI port name
+rapid_update = true            # use rapid LED update for big frame changes
+retry_seconds = 2.0            # reconnect / blocked-port retry interval
+
+[app]
+startup_mode = "visualiser"
+# Top buttons 1-8. Empty string = unassigned. Hold button 8 for 1 s = standby.
+modes = ["visualiser", "now_playing", "macro_pad", "clock", "", "", "", "test_pattern"]
+standby_hold_seconds = 1.0
+
+[visualiser]
+sub_mode = 1                   # view number, see the README
+fps = 40
+fmin = 40.0
+fmax = 16000.0
+source = ""                    # "" = whole system, or an app such as "Spotify.exe"
+sensitivity = "medium"         # auto-gain speed: low / medium / high
+auto_gain = true               # off = fixed reference level, gain_db does all the work
+gain_db = 0.0                  # boost (+) or cut (-) on top of auto gain
+range_db = 32.0                # dynamic range from empty to full bar; lower = punchier
+noise_floor_db = -75.0         # anything quieter never lights a pad
+auto_cycle = false             # jump to a random view every cycle_beats beats
+cycle_beats = 32
+cycle_seconds = 20.0           # used instead when there's no clear beat
+idle_timeout = 30.0            # seconds of silence before the idle animation
+idle_style = "animation"       # "animation" or "blank"
+
+[now_playing]
+scroll_speed = 10.0            # columns per second
+
+[clock]
+view = 1                       # 1 scrolling clock, 2 binary clock, 3 Pomodoro
+24h = true
+work_minutes = 25.0
+break_minutes = 5.0
+long_break_minutes = 15.0
+
+[macro_pad]
+page = 1
+
+# One table per button. page 1-8, x/y 0-7 from the top-left.
+# action: media (play_pause/next/prev/stop/mute/vol_up/vol_down), key ("ctrl+shift+m"),
+#         run (command line), url (URL or file), mic_mute
+# colour: red, orange, light_orange, amber, yellow, lime, green, red_dim, amber_dim, green_dim
+[[macro_pad.buttons]]
+page = 1
+x = 1
+y = 0
+action = "media"
+value = "play_pause"
+colour = "green"
+label = "Play"
+
+[[macro_pad.buttons]]
+page = 1
+x = 0
+y = 2
+action = "mic_mute"
+value = ""
+colour = "green"
+label = "Mic"
