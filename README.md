@@ -24,6 +24,10 @@ You can unplug the Launchpad, switch from headphones to speakers, or restart Spo
 
 ## Install
 
+**Exe:** download `lpctl.exe` from the project's Releases page and run it. Nothing to install. It isn't code-signed, so on first run Windows SmartScreen asks first. Click More info, then Run anyway.
+
+**From source:**
+
 ```
 git clone https://github.com/leahyandco/launchpad-lights.git
 cd launchpad-lights
@@ -32,7 +36,7 @@ uv run lpctl
 
 The first run downloads Python and the dependencies. After that, the settings window opens and the icon appears in the tray.
 
-Windows lets only one app open the Launchpad at a time. Close Ableton, Novation Components and any other MIDI software first. If something else has the port, lpctl logs the problem and retries every 2 seconds until the port is free.
+Close Ableton, Novation Components and any other MIDI software first. Older Windows MIDI drivers let only one app open the Launchpad. lpctl logs the problem and retries every 2 seconds until the port is free. Newer Windows 11 builds let apps share it, but two apps drawing on the same grid fight over the LEDs. lpctl won't start a second copy of itself.
 
 ## Running it
 
@@ -46,6 +50,7 @@ Windows lets only one app open the Launchpad at a time. Close Ableton, Novation 
 | `uv run lpctl --list-ports` | Lists MIDI ports and audio devices. |
 | `uv run lpctl --mode clock` | Starts in a specific mode. |
 | `uv run pytest` | Runs the unit tests. |
+| `powershell -ExecutionPolicy Bypass -File packaging\build.ps1` | Builds `dist\lpctl.exe`. |
 
 `flash_test.py` is a standalone check that the Launchpad responds. It doesn't need the rest of the app: `uv run flash_test.py`.
 
@@ -70,7 +75,9 @@ The 8 round side buttons belong to whichever mode is active:
 | Visualiser | 1-6 pick a view. 7 cycles through the other 7 views and lights amber while one of them is showing. 8 cycles auto-gain speed: green is low, amber medium, red high. |
 | Now playing | 1 previous, 2 play/pause, 3 next. |
 | Macro pad | 1-8 switch pages. Pages that have buttons are lit dim green. |
-| Clock | 1 scrolling clock, 2 binary clock, 3 Pomodoro. In Pomodoro, 6 starts and pauses, 7 resets, and any pad also starts and pauses. |
+| Clock | 1 scrolling clock, 2 binary clock, 3 Pomodoro, 4 flip clock. In Pomodoro, 6 starts and pauses, 7 resets, and any pad also starts and pauses. |
+
+Scrolling text uses a small 3x5 font by default, which fits about two characters on screen at once. Switch to the larger 5x7 font in Settings > General if you find it easier to read. The flip clock doesn't scroll at all. It shows the hours in amber, then the minutes in green, two seconds each.
 
 ## Settings window
 
@@ -85,7 +92,7 @@ The tabs:
 - **Macro pad**: click a pad and set its label, action, value and colour. Test runs the action without saving it.
 - **Clock**: view, 24-hour time, Pomodoro lengths, start/pause and reset.
 - **Top buttons**: which mode each top button selects.
-- **General**: start with Windows, and buttons to open the config folder and the logs.
+- **General**: start with Windows, text size, and buttons to open the config folder and the logs.
 
 The tray menu covers the quick stuff: modes, visualiser view, auto-cycle, auto gain, standby, start with Windows and quit.
 

@@ -1,10 +1,14 @@
-"""5x7 pixel font and a horizontal text scroller for the 8x8 grid."""
+"""Pixel fonts and a horizontal text scroller for the 8x8 grid.
+
+large: classic 5x7, upper and lower case.
+small: 3x5 capitals, variable width, so roughly two characters fit on the grid at once.
+"""
 import unicodedata
 
 from .frame import Color, Frame
 
 # Classic 5x7 LCD font, ASCII 0x20-0x7E. Five column bytes per glyph, bit 0 = top row.
-_GLYPHS = bytes.fromhex(
+_LARGE = bytes.fromhex(
     "0000000000" "00005f0000" "0007000700" "147f147f14" "242a7f2a12" "2313086462" "3649552250" "0005030000"
     "001c224100" "0041221c00" "082a1c2a08" "08083e0808" "0050300000" "0808080808" "0060600000" "2010080402"
     "3e5149453e" "00427f4000" "4261514946" "2141454b31" "1814127f10" "2745454539" "3c4a494930" "0171090503"
@@ -18,12 +22,45 @@ _GLYPHS = bytes.fromhex(
     "7c14141408" "081414187c" "7c08040408" "4854545420" "043f444020" "3c4040207c" "1c2040201c" "3c4030403c"
     "4428102844" "0c5050503c" "4464544c44" "0008364100" "00007f0000" "0041360800" "08082a1c08"
 )
-GLYPH_W = 5
-GLYPH_H = 7
+
+# 3x5 capitals, drawn row by row ("#" = lit). Narrow punctuation is 1-2 columns wide; M, N, W are wider.
+_SMALL_ROWS = {
+    " ": "../../../../..",
+    "0": "###/#.#/#.#/#.#/###", "1": ".#./##./.#./.#./###", "2": "###/..#/###/#../###",
+    "3": "###/..#/.##/..#/###", "4": "#.#/#.#/###/..#/..#", "5": "###/#../###/..#/###",
+    "6": "###/#../###/#.#/###", "7": "###/..#/.#./.#./.#.", "8": "###/#.#/###/#.#/###",
+    "9": "###/#.#/###/..#/###",
+    "A": ".#./#.#/###/#.#/#.#", "B": "##./#.#/##./#.#/##.", "C": ".##/#../#../#../.##",
+    "D": "##./#.#/#.#/#.#/##.", "E": "###/#../##./#../###", "F": "###/#../##./#../#..",
+    "G": ".##/#../#.#/#.#/.##", "H": "#.#/#.#/###/#.#/#.#", "I": "###/.#./.#./.#./###",
+    "J": "..#/..#/..#/#.#/.#.", "K": "#.#/#.#/##./#.#/#.#", "L": "#../#../#../#../###",
+    "M": "#...#/##.##/#.#.#/#...#/#...#", "N": "#..#/##.#/#.##/#..#/#..#", "O": ".#./#.#/#.#/#.#/.#.",
+    "P": "##./#.#/##./#../#..", "Q": ".#./#.#/#.#/##./.##", "R": "##./#.#/##./#.#/#.#",
+    "S": ".##/#../.#./..#/##.", "T": "###/.#./.#./.#./.#.", "U": "#.#/#.#/#.#/#.#/###",
+    "V": "#.#/#.#/#.#/#.#/.#.", "W": "#...#/#...#/#.#.#/##.##/#...#", "X": "#.#/#.#/.#./#.#/#.#",
+    "Y": "#.#/#.#/.#./.#./.#.", "Z": "###/..#/.#./#../###",
+    ".": "././././#", ",": "../../../.#/#.", ":": "./#/./#/.", ";": "../.#/../.#/#.",
+    "!": "#/#/#/./#", "?": "##./..#/.#./.../.#.", "'": "#/#/././.", '"': "#.#/#.#/.../.../...",
+    "-": ".../.../###/.../...", "+": ".../.#./###/.#./...", "/": "..#/..#/.#./#../#..",
+    "(": ".#/#./#./#./.#", ")": "#./.#/.#/.#/#.", "[": "##/#./#./#./##", "]": "##/.#/.#/.#/##",
+    "&": ".#./#.#/.#./#.#/.##", "_": ".../.../.../.../###", "=": ".../###/.../###/...",
+    "#": "#.#/###/#.#/###/#.#", "%": "#.#/..#/.#./#../#.#", "*": "#.#/.#./#.#/.../...",
+    "<": "..#/.#./#../.#./..#", ">": "#../.#./..#/.#./#..", "|": "#/#/#/#/#",
+    "@": ".#./#.#/###/#../.##", "$": ".##/##./.#./.##/##.",
+}
 
 
-_PUNCTUATION = str.maketrans({"–": "-", "—": "-", "‘": "'", "’": "'", "“": '"',
-                              "”": '"', "…": "...", " ": " ", "·": "-", "•": "-"})
+def _columns(rows: list[str]) -> bytes:
+    return bytes(sum(1 << r for r, row in enumerate(rows) if row[c] == "#") for c in range(len(rows[0])))
+
+
+_SMALL = {ch: _columns(src.split("/")) for ch, src in _SMALL_ROWS.items()}
+
+FONT_HEIGHT = {"large": 7, "small": 5}
+DEFAULT_FONT = "small"
+
+_PUNCTUATION = str.maketrans({"\u2013": "-", "\u2014": "-", "\u2018": "'", "\u2019": "'", "\u201c": '"',
+                              "\u201d": '"', "\u2026": "...", "\u00a0": " ", "\u00b7": "-", "\u2022": "-"})
 
 
 def ascii_fold(text: str) -> str:
@@ -37,73 +74,77 @@ def ascii_fold(text: str) -> str:
     return "".join(out)
 
 
-def glyph(ch: str) -> bytes:
+def glyph(ch: str, font: str = "large") -> bytes:
+    if font == "small":
+        return _SMALL.get(ch.upper(), _SMALL["?"])
     i = ord(ch) - 0x20
-    if not 0 <= i < len(_GLYPHS) // GLYPH_W:
+    if not 0 <= i < len(_LARGE) // 5:
         i = ord("?") - 0x20
-    return _GLYPHS[i * GLYPH_W:(i + 1) * GLYPH_W]
+    return _LARGE[i * 5:(i + 1) * 5]
 
 
-def render_columns(segments: list[tuple[str, Color]]) -> list[tuple[int, Color]]:
-    """Text segments -> list of (column bits, colour), one blank column between characters."""
+def render_columns(segments: list[tuple[str, Color]], font: str = "large") -> list[tuple[int, Color]]:
+    """Text segments -> list of (column bits, colour), one blank column after each character."""
     cols: list[tuple[int, Color]] = []
     for text, colour in segments:
         for ch in ascii_fold(text):
-            cols.extend((b, colour) for b in glyph(ch))
+            cols.extend((b, colour) for b in glyph(ch, font))
             cols.append((0, colour))
     return cols
 
 
-def draw_columns(frame: Frame, cols: list[tuple[int, Color]], offset: int, top: int = 0) -> None:
-    """Draw 8 columns starting at cols[offset] (wrapping) with the glyph's top row at `top`."""
-    if not cols:
-        return
-    for x in range(8):
-        bits, colour = cols[(offset + x) % len(cols)]
-        for row in range(GLYPH_H):
+def blit(frame: Frame, cols: list[tuple[int, Color]], x: int, top: int, height: int) -> None:
+    """Draw columns starting at grid column x. Anything off the grid is clipped."""
+    for i, (bits, colour) in enumerate(cols):
+        for row in range(height):
             if bits >> row & 1:
-                frame.set(x, top + row, colour)
+                frame.set(x + i, top + row, colour)
 
 
 class Scroller:
-    """Scrolls text right-to-left forever. Fits without scrolling when 8 columns or fewer."""
+    """Scrolls text right-to-left forever. Text that fits on the grid is centred and stays still."""
 
-    def __init__(self, speed: float = 10.0, gap: int = 6):
+    def __init__(self, speed: float = 10.0, gap: int = 6, font: str = DEFAULT_FONT):
         self.speed = speed  # columns per second
         self.gap = gap
+        self.font = font if font in FONT_HEIGHT else DEFAULT_FONT
         self.pos = 0.0
         self.key = None
         self.cols: list[tuple[int, Color]] = []
+
+    @property
+    def height(self) -> int:
+        return FONT_HEIGHT[self.font]
+
+    def set_font(self, font: str) -> None:
+        font = font if font in FONT_HEIGHT else DEFAULT_FONT
+        if font != self.font:
+            self.font, self.key = font, None  # force a re-render on the next set()
 
     def set(self, segments: list[tuple[str, Color]]) -> None:
         key = tuple(segments)
         if key != self.key:
             self.key = key
-            self.cols = render_columns(segments)
+            self.cols = render_columns(segments, self.font)
+            if self.cols and self.cols[-1][0] == 0:
+                self.cols.pop()  # trailing gap only matters when wrapping
             if len(self.cols) > 8:
                 self.cols += [(0, (0, 0))] * self.gap
                 self.pos = -8.0  # enter from the right edge
             else:
                 self.pos = 0.0
 
-    def draw(self, frame: Frame, dt: float, top: int = 0) -> None:
+    def draw(self, frame: Frame, dt: float, top: int | None = None) -> None:
+        """Small text sits on rows 1-5, large on rows 0-6, unless top is given."""
+        if top is None:
+            top = 1 if self.font == "small" else 0
         if len(self.cols) <= 8:
-            pad = (8 - len(self.cols)) // 2
-            for x, (bits, colour) in enumerate(self.cols):
-                for row in range(GLYPH_H):
-                    if bits >> row & 1:
-                        frame.set(x + pad, top + row, colour)
+            blit(frame, self.cols, (8 - len(self.cols)) // 2, top, self.height)
             return
         self.pos += self.speed * dt
         n = len(self.cols)
         start = int(self.pos)
-        for x in range(8):
-            i = start + x
-            if i < 0:
-                continue
-            bits, colour = self.cols[i % n]
-            for row in range(GLYPH_H):
-                if bits >> row & 1:
-                    frame.set(x, top + row, colour)
+        visible = [self.cols[(start + x) % n] if start + x >= 0 else (0, (0, 0)) for x in range(8)]
+        blit(frame, visible, 0, top, self.height)
         if self.pos >= n:
             self.pos -= n

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Windows exe built with PyInstaller (`packaging\build.ps1`).
+- Small 3x5 font for scrolling text, now the default. It fits about two characters on screen at once. The 5x7 font is still available in Settings > General.
+- Flip clock view: hours, then minutes, with no scrolling.
+- Only one copy of lpctl runs at a time.
+- The whole display is resent every 5 seconds, so LEDs another app overwrote correct themselves.
+- A crash in the render loop is now written to the log, and the settings window shows an error instead of vanishing.
+- A MIDI backend error while reconnecting no longer stops the app.
+
 ## 0.1.0 (2026-10-29)
 
 First release.

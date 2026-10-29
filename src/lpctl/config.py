@@ -35,6 +35,7 @@ DEFAULTS = {
         "startup_mode": "visualiser",
         "modes": ["visualiser", "now_playing", "macro_pad", "clock", "", "", "", "test_pattern"],
         "standby_hold_seconds": 1.0,
+        "text_size": "small",
     },
     "now_playing": {"scroll_speed": 10.0},
     "macro_pad": {"page": 1, "buttons": DEFAULT_MACROS},

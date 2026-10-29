@@ -24,8 +24,13 @@ class NowPlayingMode(Mode):
 
     def __init__(self, ctx):
         super().__init__(ctx)
-        self.scroller = Scroller(speed=float(ctx.config.section("now_playing").get("scroll_speed", 10)))
+        self.scroller = Scroller(speed=float(ctx.config.section("now_playing").get("scroll_speed", 10)),
+                                 font=ctx.config.section("app").get("text_size", "small"))
         self.t = 0.0
+
+    def on_config_changed(self) -> None:
+        self.scroller.speed = float(self.ctx.config.section("now_playing").get("scroll_speed", 10))
+        self.scroller.set_font(self.ctx.config.section("app").get("text_size", "small"))
 
     def on_event(self, event: ButtonEvent) -> None:
         if event.kind == "side" and event.pressed and event.index in SIDE_ACTIONS:

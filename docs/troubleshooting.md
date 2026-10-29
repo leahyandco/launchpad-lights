@@ -12,7 +12,13 @@ Run `uv run lpctl --list-ports`. If no Launchpad is listed, Windows hasn't picke
 
 The log says `Found 'Launchpad Mini 1' but could not open it`.
 
-Another app has the port. Windows only allows one. The usual cause is Ableton, Novation Components, a DAW or a second copy of lpctl. Close it. lpctl keeps retrying and connects on its own once the port is free.
+Another app has the port, and this Windows build allows only one. The usual cause is Ableton, Novation Components or a DAW. Close it. lpctl keeps retrying and connects on its own once the port is free.
+
+Newer Windows 11 builds let several apps share the port, so you won't see this error there. If the LEDs flicker or show the wrong thing, another app is drawing on the grid at the same time. Close it. lpctl resends the whole display every 5 seconds, so anything another app overwrote corrects itself.
+
+## "lpctl is already running"
+
+lpctl allows only one copy of itself at a time. The other copy is in the tray, so open it from there or quit it first. If no tray icon is visible, check Task Manager for a leftover `lpctl.exe` or `pythonw.exe`.
 
 ## LEDs work, buttons don't
 
@@ -53,6 +59,10 @@ The registry entry points at this folder's `.venv`. If you moved or recloned the
 ## LEDs lag or tear
 
 The visualiser runs at 40 fps by default, and big changes are sent as a single rapid update. If it can't keep up on your machine, lower `fps` in `[visualiser]`. If the LEDs show garbage after a big change, set `rapid_update = false` in `[device]`. That's slower, but every LED is addressed individually.
+
+## "lpctl hit an error and stopped"
+
+The render loop crashed. The full traceback is in the log. Restart lpctl. If it happens again, the log entry is what's needed to fix it.
 
 ## Nothing above helped
 

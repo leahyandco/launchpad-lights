@@ -25,6 +25,7 @@ lpctl = "lpctl.__main__:main"
 
 [dependency-groups]
 dev = ["pytest>=8"]
+build = ["pyinstaller>=6.10"]
 
 [build-system]
 requires = ["hatchling"]

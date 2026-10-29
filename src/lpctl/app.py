@@ -41,6 +41,7 @@ class App:
         self._hold_start: float | None = None
         self._hold_fired = False
         self._running = False
+        self.crashed = False
         self._commands: queue.Queue = queue.Queue()
         self._save_at: float | None = None
         self.last_frame = Frame()  # most recent rendered frame, for the GUI preview
@@ -230,6 +231,10 @@ class App:
                     time.sleep(delay)
         except KeyboardInterrupt:
             pass
+        except Exception:
+            self.crashed = True
+            log.exception("Render loop crashed")  # under pythonw / the exe there is no stderr to see it
+            raise
         finally:
             log.info("Shutting down")
             if self._save_at is not None:

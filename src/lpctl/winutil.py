@@ -44,6 +44,22 @@ NAMED_KEYS = {
 EXTENDED = {0x2D, 0x2E, 0x24, 0x23, 0x21, 0x22, 0x25, 0x26, 0x27, 0x28, 0x2C, 0x5B, *MEDIA_KEYS.values()}
 
 
+_instance_mutex = None
+ERROR_ALREADY_EXISTS = 183
+
+
+def claim_single_instance(name: str = "Local\\lpctl") -> bool:
+    """False if another lpctl already holds the named mutex. The handle lives until exit."""
+    global _instance_mutex
+    kernel32 = ctypes.windll.kernel32
+    _instance_mutex = kernel32.CreateMutexW(None, False, name)
+    return kernel32.GetLastError() != ERROR_ALREADY_EXISTS
+
+
+def message_box(title: str, text: str) -> None:
+    ctypes.windll.user32.MessageBoxW(None, text, title, 0x40)  # MB_ICONINFORMATION
+
+
 def ensure_com() -> None:
     """Initialise COM (MTA) on the calling thread once."""
     if getattr(_com, "ready", False):

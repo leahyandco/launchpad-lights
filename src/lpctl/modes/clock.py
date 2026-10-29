@@ -1,14 +1,14 @@
 """Clock and Pomodoro timer.
 
-Side buttons: 1 scrolling clock, 2 binary clock, 3 Pomodoro. In Pomodoro, side 6 or any pad
-starts/pauses and side 7 resets. The timer keeps running when you switch to another mode.
+Side buttons: 1 scrolling clock, 2 binary clock, 3 Pomodoro, 4 flip clock. In Pomodoro, side 6
+or any pad starts/pauses and side 7 resets. The timer keeps running when you switch modes.
 """
 import logging
 import math
 import time
 
 from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.font import Scroller
+from lpctl.launchpad.font import Scroller, blit, render_columns
 from lpctl.launchpad.frame import Frame
 
 from .base import Mode
@@ -18,8 +18,9 @@ log = logging.getLogger(__name__)
 
 RED, GREEN, AMBER, YELLOW = (3, 0), (0, 3), (3, 3), (2, 3)
 RED_DIM, GREEN_DIM, AMBER_DIM = (1, 0), (0, 1), (1, 1)
-VIEWS = ["clock", "binary", "pomodoro"]
-VIEW_LABELS = ["Scrolling clock", "Binary clock", "Pomodoro"]
+VIEWS = ["clock", "binary", "pomodoro", "flip"]
+VIEW_LABELS = ["Scrolling clock", "Binary clock", "Pomodoro", "Flip clock (hours, then minutes)"]
+FLIP_S = 2.0
 START_BUTTON, RESET_BUTTON = 5, 6
 DONE_FLASH_S = 4.0
 
@@ -96,14 +97,18 @@ class Clock(Mode):
         if POMODORO.total == 0:
             POMODORO.reset()
         self.view = self._configured_view()
-        self.scroller = Scroller(speed=8.0, gap=4)
+        self.scroller = Scroller(speed=8.0, gap=4, font=self._text_size())
         self.t = 0.0
 
     def _configured_view(self) -> int:
         return min(max(int(self.cfg.get("view", 1)) - 1, 0), len(VIEWS) - 1)
 
+    def _text_size(self) -> str:
+        return self.ctx.config.section("app").get("text_size", "small")
+
     def on_config_changed(self) -> None:
         self.view = self._configured_view()
+        self.scroller.set_font(self._text_size())
 
     def on_event(self, event: ButtonEvent) -> None:
         if not event.pressed:
@@ -134,6 +139,17 @@ class Clock(Mode):
         self.scroller.draw(frame, dt)
         # Seconds as a dot travelling along the bottom row.
         frame.set(now.tm_sec * 8 // 60, 7, RED_DIM)
+
+    def _flip(self, frame, dt):
+        # Hours in amber, then minutes in green, two still 3x5 digits each. No scrolling.
+        now = time.localtime()
+        hours = int(self.t / FLIP_S) % 2 == 0
+        h = now.tm_hour if self.cfg.get("24h", True) else (now.tm_hour % 12 or 12)
+        value, colour = (h, AMBER) if hours else (now.tm_min, GREEN)
+        cols = render_columns([(f"{value:02d}", colour)], "small")[:-1]
+        blit(frame, cols, (8 - len(cols)) // 2, 1, 5)
+        for x in range(0, 4) if hours else range(4, 8):  # bottom row says which half you're looking at
+            frame.set(x, 7, AMBER_DIM if hours else GREEN_DIM)
 
     def _binary(self, frame, dt):
         now = time.localtime()

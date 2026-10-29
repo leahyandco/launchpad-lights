@@ -10,7 +10,7 @@ import queue
 import signal
 import threading
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox, ttk
 
 from PIL import ImageTk
 
@@ -116,8 +116,9 @@ class MainWindow:
         ttk.Button(buttons, text="Hide to tray", command=self.hide).pack(side="left", padx=(0, 6))
         ttk.Button(buttons, text="Quit", command=self.quit).pack(side="left")
 
-        self._tick_preview()
-        self._tick_state()
+        # First ticks run inside mainloop, never during construction.
+        root.after(0, self._tick_preview)
+        root.after(0, self._tick_state)
 
     # Helpers
 
@@ -221,7 +222,7 @@ class MainWindow:
         box = ttk.LabelFrame(tab, text="Gain", padding=8)
         box.pack(fill="x", pady=(10, 0))
         box.columnconfigure(1, weight=1)
-        self.auto_var = tk.BooleanVar()
+        self.auto_var = tk.BooleanVar(value=bool(self.viz.get("auto_gain", True)))
         ttk.Checkbutton(box, text="Auto gain (follows the volume)", variable=self.auto_var,
                         command=self._set_auto).grid(row=0, column=0, columnspan=3, sticky="w")
         speed = ttk.Frame(box)
@@ -253,6 +254,7 @@ class MainWindow:
                                                                     pady=(6, 0))
         ttk.Button(box, text="Reset to defaults", command=self._reset_gain).grid(
             row=6, column=0, columnspan=3, sticky="w", pady=(8, 0))
+        self._update_speed_state()
 
     def _tab_macro(self, tab) -> None:
         self.macro_cfg = self.cfg.section("macro_pad")
@@ -357,6 +359,13 @@ class MainWindow:
         self.autostart_var = tk.BooleanVar(value=autostart.is_enabled())
         ttk.Checkbutton(tab, text="Start with Windows (in the tray)", variable=self.autostart_var,
                         command=self._toggle_autostart).pack(anchor="w")
+        text = ttk.LabelFrame(tab, text="Scrolling text (clock, now playing)", padding=8)
+        text.pack(fill="x", pady=(12, 0))
+        self.text_size_var = tk.StringVar(value=self.cfg.section("app").get("text_size", "small"))
+        for value, label in [("small", "Small: about 2 characters on screen at once"),
+                             ("large", "Large: easier to read, about 1 character at once")]:
+            ttk.Radiobutton(text, text=label, value=value, variable=self.text_size_var,
+                            command=lambda: self._set("app", text_size=self.text_size_var.get())).pack(anchor="w")
         row = ttk.Frame(tab)
         row.pack(anchor="w", pady=(12, 0))
         ttk.Button(row, text="Open config folder", command=lambda: os.startfile(app_dir())).pack(side="left")
@@ -536,6 +545,9 @@ class MainWindow:
                 self.quit()
                 return
         if not self.worker.is_alive():
+            if self.app.crashed:
+                messagebox.showerror(TITLE, "lpctl hit an error and stopped.\n\n"
+                                            f"Details are in {app_dir() / 'logs' / 'lpctl.log'}")
             self.quit()
             return
         app = self.app
@@ -575,7 +587,6 @@ def run_gui(app, start_hidden: bool = False) -> None:
     window = MainWindow(root, app, ui, worker)
     window.tray = Tray(app, ui)
     window.tray.start()
-    window._update_speed_state()
     signal.signal(signal.SIGINT, lambda *_: ui.put("quit"))
     if start_hidden:
         root.withdraw()

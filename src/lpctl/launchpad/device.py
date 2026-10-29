@@ -1,6 +1,7 @@
 """Port discovery, reconnect, frame flushing and input decoding."""
 import logging
 import queue
+import time
 
 import mido
 
@@ -10,6 +11,7 @@ from .frame import N_LEDS, Frame
 log = logging.getLogger(__name__)
 
 RAPID_THRESHOLD = N_LEDS // 2  # above this many changed LEDs, a rapid update is fewer messages
+FULL_REFRESH_S = 5.0  # resend everything this often, so LEDs another app overwrote heal themselves
 
 
 def find_port(names: list[str], substring: str) -> str | None:
@@ -28,6 +30,7 @@ class LaunchpadDevice:
         self._out_name: str | None = None
         self._last: Frame | None = None
         self._next_check = 0.0
+        self._next_full = 0.0
         self._problem: str | None = None
 
     @property
@@ -45,12 +48,15 @@ class LaunchpadDevice:
         if now < self._next_check:
             return
         self._next_check = now + self.retry_seconds
-        if self.connected:
-            if self._out_name not in mido.get_output_names():
-                log.warning("Launchpad disconnected (%s)", self._out_name)
-                self._close_ports()
-        else:
-            self._try_open()
+        try:
+            if self.connected:
+                if self._out_name not in mido.get_output_names():
+                    log.warning("Launchpad disconnected (%s)", self._out_name)
+                    self._close_ports()
+            else:
+                self._try_open()
+        except Exception as e:  # a MIDI backend failure must not take the render loop down
+            self._report(f"MIDI error: {e}.")
 
     def _report(self, problem: str) -> None:
         # Log each distinct problem once rather than every retry.
@@ -92,6 +98,10 @@ class LaunchpadDevice:
     def show(self, frame: Frame) -> None:
         if not self.connected:
             return
+        now = time.monotonic()
+        if now >= self._next_full:
+            self._next_full = now + FULL_REFRESH_S
+            self._last = None
         changed = frame.diff(self._last)
         if not changed:
             return

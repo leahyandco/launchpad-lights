@@ -38,10 +38,29 @@ def lit(frame):
 
 
 def test_font_and_fold():
-    assert ascii_fold("Beyoncé – Halo") == "Beyonce - Halo"
-    assert ascii_fold("Sigur Rós ♫") == "Sigur Ros ?"
+    assert ascii_fold("Beyonc\u00e9 \u2013 Halo") == "Beyonce - Halo"
+    assert ascii_fold("Sigur R\u00f3s \u266b") == "Sigur Ros ?"
     cols = render_columns([("Hi", (3, 0))])
     assert len(cols) == 12 and cols[0][0] == 0x7F  # H's first column is solid
+
+
+def test_small_font_fits_more():
+    from lpctl.launchpad.font import _SMALL_ROWS
+    for ch, rows in _SMALL_ROWS.items():
+        parts = rows.split("/")
+        assert len(parts) == 5 and len({len(p) for p in parts}) == 1, ch
+    text = [("Hello world", (3, 3))]
+    assert len(render_columns(text, "small")) < len(render_columns(text, "large")) * 0.75
+    assert render_columns([("a", (3, 3))], "small") == render_columns([("A", (3, 3))], "small")
+
+
+def test_flip_clock_is_static_two_digits(tmp_path):
+    mode = Clock(ctx(tmp_path))
+    mode.view = 3
+    a, b = Frame(), Frame()
+    mode.render(a, 0.01)
+    mode.render(b, 0.01)
+    assert a.leds[:56] == b.leds[:56] and lit(a) > 6
 
 
 def test_scroller_short_text_is_centred_and_static():
@@ -69,7 +88,7 @@ def test_now_playing_renders_title_and_idle(tmp_path):
 
 def test_clock_views_render(tmp_path):
     mode = Clock(ctx(tmp_path))
-    for view in range(3):
+    for view in range(4):
         mode.view = view
         f = Frame()
         mode.render(f, 0.05)

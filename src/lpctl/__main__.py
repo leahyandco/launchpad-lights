@@ -85,6 +85,15 @@ def main(argv: list[str] | None = None) -> None:
         from lpctl.launchpad.simulator import TerminalDevice
         device = TerminalDevice()
     else:
+        # Newer Windows builds let two apps share the Launchpad, and two copies would fight over the LEDs.
+        from lpctl.winutil import claim_single_instance, message_box
+        if not claim_single_instance():
+            log.warning("lpctl is already running; exiting")
+            if sys.stdout:
+                print("lpctl is already running. Quit it from the tray icon first.")
+            else:
+                message_box("Launchpad Mini", "lpctl is already running. It's in the system tray.")
+            return
         from lpctl.launchpad.device import LaunchpadDevice
         dev_cfg = config.section("device")
         device = LaunchpadDevice(dev_cfg.get("port_name", "Launchpad Mini"), bool(dev_cfg.get("rapid_update", True)),
