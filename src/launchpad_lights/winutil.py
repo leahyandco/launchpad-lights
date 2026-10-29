@@ -48,8 +48,8 @@ _instance_mutex = None
 ERROR_ALREADY_EXISTS = 183
 
 
-def claim_single_instance(name: str = "Local\\lpctl") -> bool:
-    """False if another lpctl already holds the named mutex. The handle lives until exit."""
+def claim_single_instance(name: str = "Local\\LaunchpadLights") -> bool:
+    """False if another copy already holds the named mutex. The handle lives until exit."""
     global _instance_mutex
     kernel32 = ctypes.windll.kernel32
     _instance_mutex = kernel32.CreateMutexW(None, False, name)

@@ -5,13 +5,13 @@ import queue
 import pystray
 from PIL import Image, ImageDraw
 
-from lpctl import autostart
-from lpctl.modes.visualiser import SUB_MODE_LABELS
-from lpctl.services.analysis import SENSITIVITY
+from launchpad_lights import autostart
+from launchpad_lights.modes.visualiser import SUB_MODE_LABELS
+from launchpad_lights.services.analysis import SENSITIVITY
 
 log = logging.getLogger(__name__)
 
-TITLE = "Launchpad Mini"
+TITLE = "Launchpad Lights"
 
 
 def mode_label(name: str) -> str:
@@ -44,7 +44,7 @@ class Tray:
         self.viz = app.config.section("visualiser")
         self._state = None
         self._slots = list(app.slots)
-        self.icon = pystray.Icon("lpctl", make_icon(), TITLE, menu=self._menu())
+        self.icon = pystray.Icon("launchpad-lights", make_icon(), TITLE, menu=self._menu())
 
     def start(self) -> None:
         self.icon.run_detached()

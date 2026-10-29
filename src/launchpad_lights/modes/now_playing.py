@@ -4,10 +4,10 @@ Side buttons: 1 previous, 2 play/pause, 3 next.
 """
 import math
 
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.font import Scroller
-from lpctl.launchpad.frame import Frame
-from lpctl.winutil import send_media
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.font import Scroller
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.winutil import send_media
 
 from .base import Mode
 from .registry import register

@@ -2,10 +2,10 @@
 from dataclasses import dataclass
 from typing import ClassVar
 
-from lpctl.config import Config
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import Frame
-from lpctl.services import ServiceManager
+from launchpad_lights.config import Config
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.services import ServiceManager
 
 
 @dataclass

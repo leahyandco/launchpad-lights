@@ -16,7 +16,7 @@ Use Settings > Macro pad.
 
 Clear removes the button. Changes go live on the device as soon as you save.
 
-You can also edit `[[macro_pad.buttons]]` in `config.toml` by hand while lpctl isn't running. Each button looks like this:
+You can also edit `[[macro_pad.buttons]]` in `config.toml` by hand while Launchpad Lights isn't running. Each button looks like this:
 
 ```toml
 [[macro_pad.buttons]]
@@ -65,11 +65,11 @@ cmd /c start "" "C:\Users\me\Downloads"
 powershell -NoProfile -WindowStyle Hidden -File C:\Scripts\toggle-output.ps1
 ```
 
-The program runs as you, with your permissions. lpctl doesn't wait for it to finish and doesn't capture its output.
+The program runs as you, with your permissions. Launchpad Lights doesn't wait for it to finish and doesn't capture its output.
 
 ### Mic mute
 
-A `mic_mute` pad ignores its colour setting. Its colour shows the state, which lpctl checks twice a second:
+A `mic_mute` pad ignores its colour setting. Its colour shows the state, which Launchpad Lights checks twice a second:
 
 | Colour | Meaning |
 |---|---|

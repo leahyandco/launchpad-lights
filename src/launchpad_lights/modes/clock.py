@@ -7,9 +7,9 @@ import logging
 import math
 import time
 
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.font import Scroller, blit, render_columns
-from lpctl.launchpad.frame import Frame
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.font import Scroller, blit, render_columns
+from launchpad_lights.launchpad.frame import Frame
 
 from .base import Mode
 from .registry import register

@@ -8,9 +8,9 @@ import math
 import random
 from collections import deque
 
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import OFF, Frame
-from lpctl.services.analysis import SENSITIVITY
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import OFF, Frame
+from launchpad_lights.services.analysis import SENSITIVITY
 
 from .base import Mode
 from .registry import register

@@ -1,11 +1,11 @@
 import queue
 
-from lpctl.app import App
-from lpctl.config import DEFAULTS, Config
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import TOP
-from lpctl.modes import registry
-from lpctl.modes.base import Mode
+from launchpad_lights.app import App
+from launchpad_lights.config import DEFAULTS, Config
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import TOP
+from launchpad_lights.modes import registry
+from launchpad_lights.modes.base import Mode
 
 
 @registry.register

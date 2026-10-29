@@ -1,7 +1,8 @@
-"""TOML config in %APPDATA%\\lpctl, merged over defaults."""
+"""TOML config in %APPDATA%\\Launchpad Lights, merged over defaults."""
 import copy
 import logging
 import os
+import shutil
 import tomllib
 from pathlib import Path
 
@@ -60,8 +61,22 @@ DEFAULTS = {
 }
 
 
+APP_NAME = "Launchpad Lights"
+OLD_DIR_NAME = "lpctl"  # the app's name before 0.2
+
+
 def app_dir() -> Path:
-    return Path(os.environ.get("APPDATA") or Path.home()) / "lpctl"
+    return Path(os.environ.get("APPDATA") or Path.home()) / APP_NAME
+
+
+def migrate_old_dir() -> None:
+    """Copy the config across from the pre-rename folder the first time the new name runs."""
+    new = app_dir()
+    old = new.parent / OLD_DIR_NAME / "config.toml"
+    if not (new / "config.toml").exists() and old.exists():
+        new.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(old, new / "config.toml")
+        log.info("Copied settings from %s", old)
 
 
 class Config:
@@ -71,6 +86,8 @@ class Config:
 
     @classmethod
     def load(cls, path: str | Path | None = None) -> "Config":
+        if not path:
+            migrate_old_dir()
         path = Path(path) if path else app_dir() / "config.toml"
         data = copy.deepcopy(DEFAULTS)
         exists = path.exists()

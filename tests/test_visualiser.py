@@ -2,12 +2,12 @@ import copy
 
 import pytest
 
-from lpctl.config import DEFAULTS, Config
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import Frame
-from lpctl.modes.base import ModeContext
-from lpctl.modes.visualiser import DIRECT_BUTTONS, SUB_MODES, Visualiser
-from lpctl.services.analysis import Snapshot
+from launchpad_lights.config import DEFAULTS, Config
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.modes.base import ModeContext
+from launchpad_lights.modes.visualiser import DIRECT_BUTTONS, SUB_MODES, Visualiser
+from launchpad_lights.services.analysis import Snapshot
 
 
 class FakeAudio:

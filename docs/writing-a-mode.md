@@ -1,19 +1,19 @@
 # Writing a mode
 
-A mode is one Python file in `src/lpctl/modes/`. Drop it in, assign it to a top button in Settings > Top buttons, and it's live. Nothing else needs registering.
+A mode is one Python file in `src/launchpad_lights/modes/`. Drop it in, assign it to a top button in Settings > Top buttons, and it's live. Nothing else needs registering.
 
 Modes never talk to MIDI. They draw into a frame, and the app works out which LEDs changed and sends only those. That keeps MIDI traffic down and means you can build and test a mode without the Launchpad plugged in.
 
 ## Minimal example
 
-`src/lpctl/modes/paint.py`:
+`src/launchpad_lights/modes/paint.py`:
 
 ```python
 """Toggle pads on and off by pressing them."""
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import Frame
-from lpctl.modes.base import Mode
-from lpctl.modes.registry import register
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.modes.base import Mode
+from launchpad_lights.modes.registry import register
 
 
 @register
@@ -37,7 +37,7 @@ class Paint(Mode):
 Run it without hardware:
 
 ```
-uv run lpctl --simulate --mode paint
+uv run launchpad-lights --simulate --mode paint
 ```
 
 ## The Mode class
@@ -88,7 +88,7 @@ self.cfg["last_colour"] = "green"
 self.ctx.save()
 ```
 
-Add defaults to `DEFAULTS` in `src/lpctl/config.py` so the key shows up in a fresh config file.
+Add defaults to `DEFAULTS` in `src/launchpad_lights/config.py` so the key shows up in a fresh config file.
 
 ## Services
 
@@ -112,14 +112,14 @@ def render(self, frame, dt):
 
 `latest()` never blocks. The service fills it in on its own thread, and you read whatever is newest.
 
-To add a service, write a class with `start()` and `stop()` and register a factory for it in `App.__init__` in `src/lpctl/app.py`. Services start only while a mode that needs them is active, so a service that polls an API costs nothing when nobody is using it.
+To add a service, write a class with `start()` and `stop()` and register a factory for it in `App.__init__` in `src/launchpad_lights/app.py`. Services start only while a mode that needs them is active, so a service that polls an API costs nothing when nobody is using it.
 
 ## Text
 
-`lpctl.launchpad.font.Scroller` scrolls text in a 5x7 font. Text 8 columns wide or less is centred and doesn't move.
+`launchpad_lights.launchpad.font.Scroller` scrolls text in a 5x7 font. Text 8 columns wide or less is centred and doesn't move.
 
 ```python
-from lpctl.launchpad.font import Scroller
+from launchpad_lights.launchpad.font import Scroller
 
 self.scroller = Scroller(speed=10)                         # columns per second
 self.scroller.set([("Hello ", (3, 3)), ("world", (0, 3))])  # call every frame; it only restarts when the text changes

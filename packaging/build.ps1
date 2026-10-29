@@ -1,4 +1,4 @@
-# Builds dist\lpctl.exe.
+# Builds dist\LaunchpadLights.exe.
 # Uses its own environment in build\venv so it never touches the dev .venv.
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -13,22 +13,22 @@ function Invoke-Step {
 }
 
 Invoke-Step "Sync build environment" { uv sync --locked --group build --no-dev }
-Invoke-Step "Make icon" { uv run --no-sync python packaging\make_icon.py build\lpctl.ico }
-$icon = (Resolve-Path build\lpctl.ico).Path  # absolute: PyInstaller resolves relative paths against --specpath
+Invoke-Step "Make icon" { uv run --no-sync python packaging\make_icon.py build\launchpad_lights.ico }
+$icon = (Resolve-Path build\launchpad_lights.ico).Path  # absolute: PyInstaller resolves relative paths against --specpath
 Invoke-Step "PyInstaller" {
     uv run --no-sync pyinstaller --noconfirm --clean --onefile --windowed `
-        --name lpctl `
+        --name LaunchpadLights `
         --icon $icon `
         --specpath build `
         --workpath build\pyinstaller `
         --distpath dist `
         --paths src `
-        --collect-submodules lpctl.modes `
+        --collect-submodules launchpad_lights.modes `
         --collect-submodules winrt `
         --hidden-import pystray._win32 `
         --hidden-import mido.backends.rtmidi `
         packaging\entry.py
 }
 
-$exe = Get-Item dist\lpctl.exe
+$exe = Get-Item dist\LaunchpadLights.exe
 Write-Host ("==> Built {0} ({1:N1} MB)" -f $exe.FullName, ($exe.Length / 1MB))

@@ -6,11 +6,11 @@ The visualiser listens to what the PC is playing, not to a microphone. It uses W
 
 Set it in Settings > Audio > Capture from.
 
-**System (all apps)** is the default. It captures the default output device. If you change the default, for example from speakers to headphones, apps move their playback and the old device goes silent. After 3 seconds of silence lpctl reopens on the new default, so it follows the switch in about 3 to 5 seconds.
+**System (all apps)** is the default. It captures the default output device. If you change the default, for example from speakers to headphones, apps move their playback and the old device goes silent. After 3 seconds of silence Launchpad Lights reopens on the new default, so it follows the switch in about 3 to 5 seconds.
 
 **A single app** captures one program and ignores everything else. Discord pings, YouTube in another tab and system sounds don't show up. The list shows apps that are making sound right now. You can also type an executable name such as `Spotify.exe` into the box and press Enter.
 
-Single-app capture includes the app's child processes. That matters for browsers, because Chrome, Edge and Firefox play audio from a child process, not the main one. If the app isn't running, lpctl logs it once and keeps retrying. If the app restarts, lpctl reattaches after 3 seconds of silence.
+Single-app capture includes the app's child processes. That matters for browsers, because Chrome, Edge and Firefox play audio from a child process, not the main one. If the app isn't running, Launchpad Lights logs it once and keeps retrying. If the app restarts, Launchpad Lights reattaches after 3 seconds of silence.
 
 Single-app capture needs Windows 10 2004 or later.
 
@@ -38,7 +38,7 @@ Bars rise instantly and fall over about a quarter of a second.
 
 ## BPM
 
-BPM comes from kicks in the two lowest bands. lpctl takes the median gap between the last few beats and folds it into the 70-180 BPM range.
+BPM comes from kicks in the two lowest bands. Launchpad Lights takes the median gap between the last few beats and folds it into the 70-180 BPM range.
 
 - It needs about 4 beats before it shows a number.
 - It drops back to "listening" after 4 seconds without a beat.

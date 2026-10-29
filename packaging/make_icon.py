@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-from lpctl.tray import make_icon
+from launchpad_lights.tray import make_icon
 
 out = Path(sys.argv[1])
 out.parent.mkdir(parents=True, exist_ok=True)

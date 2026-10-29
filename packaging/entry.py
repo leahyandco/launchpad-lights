@@ -1,4 +1,4 @@
 """PyInstaller entry point."""
-from lpctl.__main__ import main
+from launchpad_lights.__main__ import main
 
 main()

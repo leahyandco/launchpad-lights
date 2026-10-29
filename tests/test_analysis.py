@@ -1,6 +1,6 @@
 import numpy as np
 
-from lpctl.services.analysis import Analyzer
+from launchpad_lights.services.analysis import Analyzer
 
 RATE = 48000
 BLOCK = 1024
@@ -98,7 +98,7 @@ def test_bpm_from_bass_bursts():
 
 
 def test_estimate_bpm_folds_octaves():
-    from lpctl.services.analysis import estimate_bpm
+    from launchpad_lights.services.analysis import estimate_bpm
     halves = [i * 1.0 for i in range(8)]  # 60 BPM folds up to 120
     assert estimate_bpm(halves) == 120.0
     assert estimate_bpm([0, 0.5]) == 0.0

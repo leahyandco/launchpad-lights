@@ -15,9 +15,9 @@ import subprocess
 import threading
 import time
 
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import Frame
-from lpctl.winutil import mic_muted, send_combo, send_media, toggle_mic
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.winutil import mic_muted, send_combo, send_media, toggle_mic
 
 from .base import Mode
 from .registry import register

@@ -3,14 +3,14 @@ import logging
 import queue
 import time
 
-from lpctl.config import Config
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import Frame
-from lpctl.modes import registry
-from lpctl.modes.base import Mode, ModeContext
-from lpctl.services import ServiceManager
-from lpctl.services.audio import AudioService
-from lpctl.services.media import MediaService
+from launchpad_lights.config import Config
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.modes import registry
+from launchpad_lights.modes.base import Mode, ModeContext
+from launchpad_lights.services import ServiceManager
+from launchpad_lights.services.audio import AudioService
+from launchpad_lights.services.media import MediaService
 
 log = logging.getLogger(__name__)
 

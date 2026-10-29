@@ -1,8 +1,8 @@
 import mido
 import pytest
 
-from lpctl.launchpad import protocol
-from lpctl.launchpad.frame import SIDE, TOP, Frame
+from launchpad_lights.launchpad import protocol
+from launchpad_lights.launchpad.frame import SIDE, TOP, Frame
 
 
 @pytest.mark.parametrize("color,expected", [

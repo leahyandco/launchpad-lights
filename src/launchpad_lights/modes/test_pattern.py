@@ -3,8 +3,8 @@ across the whole device, and echoes every button press. Held buttons light red."
 import logging
 import sys
 
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import N_LEDS, SIDE, TOP, Frame
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import N_LEDS, SIDE, TOP, Frame
 
 from .base import Mode
 from .registry import register

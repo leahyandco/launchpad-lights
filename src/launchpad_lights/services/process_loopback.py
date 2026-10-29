@@ -9,7 +9,7 @@ from ctypes import POINTER, byref, c_int, c_int64, c_uint32, c_uint64, c_void_p,
 import numpy as np
 import psutil
 
-from lpctl.winutil import ensure_com
+from launchpad_lights.winutil import ensure_com
 
 from comtypes import COMObject, GUID, HRESULT, IUnknown, STDMETHOD  # noqa: E402  (after coinit flags)
 

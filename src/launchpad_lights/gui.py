@@ -14,16 +14,16 @@ from tkinter import messagebox, ttk
 
 from PIL import ImageTk
 
-from lpctl import autostart
-from lpctl.config import app_dir
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.frame import OFF, SIDE, TOP, Color
-from lpctl.modes import registry
-from lpctl.modes.clock import POMODORO, VIEW_LABELS as CLOCK_VIEWS
-from lpctl.modes.macro_pad import ACTIONS, COLOURS, PAGES, run_action
-from lpctl.modes.visualiser import SUB_MODE_LABELS
-from lpctl.services.analysis import GAIN_DEFAULTS, SENSITIVITY
-from lpctl.winutil import MEDIA_KEYS, audio_apps
+from launchpad_lights import autostart
+from launchpad_lights.config import app_dir
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.frame import OFF, SIDE, TOP, Color
+from launchpad_lights.modes import registry
+from launchpad_lights.modes.clock import POMODORO, VIEW_LABELS as CLOCK_VIEWS
+from launchpad_lights.modes.macro_pad import ACTIONS, COLOURS, PAGES, run_action
+from launchpad_lights.modes.visualiser import SUB_MODE_LABELS
+from launchpad_lights.services.analysis import GAIN_DEFAULTS, SENSITIVITY
+from launchpad_lights.winutil import MEDIA_KEYS, audio_apps
 
 from .tray import TITLE, Tray, make_icon, mode_label
 
@@ -546,8 +546,8 @@ class MainWindow:
                 return
         if not self.worker.is_alive():
             if self.app.crashed:
-                messagebox.showerror(TITLE, "lpctl hit an error and stopped.\n\n"
-                                            f"Details are in {app_dir() / 'logs' / 'lpctl.log'}")
+                messagebox.showerror(TITLE, "Launchpad Lights hit an error and stopped.\n\n"
+                                            f"Details are in {app_dir() / 'logs' / 'launchpad-lights.log'}")
             self.quit()
             return
         app = self.app

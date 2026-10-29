@@ -1,4 +1,4 @@
-from lpctl.launchpad.frame import N_LEDS, SIDE, TOP, Frame
+from launchpad_lights.launchpad.frame import N_LEDS, SIDE, TOP, Frame
 
 
 def test_diff_against_none_is_everything():

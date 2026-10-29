@@ -1,16 +1,16 @@
 import copy
 import time
 
-from lpctl.config import DEFAULTS, Config
-from lpctl.launchpad.events import ButtonEvent
-from lpctl.launchpad.font import Scroller, ascii_fold, render_columns
-from lpctl.launchpad.frame import Frame
-from lpctl.modes import macro_pad, registry
-from lpctl.modes.base import ModeContext
-from lpctl.modes.clock import POMODORO, Clock
-from lpctl.modes.now_playing import NowPlayingMode
-from lpctl.services.media import NowPlaying
-from lpctl.winutil import parse_combo
+from launchpad_lights.config import DEFAULTS, Config
+from launchpad_lights.launchpad.events import ButtonEvent
+from launchpad_lights.launchpad.font import Scroller, ascii_fold, render_columns
+from launchpad_lights.launchpad.frame import Frame
+from launchpad_lights.modes import macro_pad, registry
+from launchpad_lights.modes.base import ModeContext
+from launchpad_lights.modes.clock import POMODORO, Clock
+from launchpad_lights.modes.now_playing import NowPlayingMode
+from launchpad_lights.services.media import NowPlaying
+from launchpad_lights.winutil import parse_combo
 
 
 class FakeMedia:
@@ -45,7 +45,7 @@ def test_font_and_fold():
 
 
 def test_small_font_fits_more():
-    from lpctl.launchpad.font import _SMALL_ROWS
+    from launchpad_lights.launchpad.font import _SMALL_ROWS
     for ch, rows in _SMALL_ROWS.items():
         parts = rows.split("/")
         assert len(parts) == 5 and len({len(p) for p in parts}) == 1, ch

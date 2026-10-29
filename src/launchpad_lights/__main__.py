@@ -8,9 +8,9 @@ import logging  # noqa: E402
 import signal  # noqa: E402
 from logging.handlers import RotatingFileHandler  # noqa: E402
 
-from lpctl.config import Config, app_dir
+from launchpad_lights.config import Config, app_dir
 
-log = logging.getLogger("lpctl")
+log = logging.getLogger("launchpad_lights")
 
 
 def setup_logging(verbose: bool, console: bool) -> None:
@@ -20,7 +20,7 @@ def setup_logging(verbose: bool, console: bool) -> None:
     log_dir = app_dir() / "logs"
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
-        fh = RotatingFileHandler(log_dir / "lpctl.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8")
+        fh = RotatingFileHandler(log_dir / "launchpad-lights.log", maxBytes=1_000_000, backupCount=3, encoding="utf-8")
         fh.setFormatter(fmt)
         root.addHandler(fh)
     except OSError as e:
@@ -62,14 +62,14 @@ def list_ports() -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    p = argparse.ArgumentParser(prog="lpctl", description="Launchpad Mini controller")
+    p = argparse.ArgumentParser(prog="launchpad-lights", description="Launchpad Lights: a controller for the Launchpad Mini")
     p.add_argument("--test", action="store_true", help="hardware smoke test: walk every LED, cycle colours, echo presses")
     p.add_argument("--simulate", action="store_true", help="render to the terminal instead of the device")
     p.add_argument("--list-ports", action="store_true", help="list MIDI ports and audio devices")
     p.add_argument("--no-gui", action="store_true", help="run headless: no window or tray icon")
     p.add_argument("--hidden", action="store_true", help="start with the window hidden (tray icon only)")
     p.add_argument("--mode", help="start in this mode instead of the configured one")
-    p.add_argument("--config", help="config file path (default %%APPDATA%%\\lpctl\\config.toml)")
+    p.add_argument("--config", help="config file path (default %%APPDATA%%\\Launchpad Lights\\config.toml)")
     p.add_argument("-v", "--verbose", action="store_true")
     args = p.parse_args(argv)
 
@@ -77,29 +77,31 @@ def main(argv: list[str] | None = None) -> None:
         list_ports()
         return
 
+    setup_logging(args.verbose, console=not args.simulate)  # first, so config migration gets logged
     config = Config.load(args.config)
-    setup_logging(args.verbose, console=not args.simulate)
-    log.info("Starting lpctl (config %s)", config.path)
+    log.info("Starting Launchpad Lights (config %s)", config.path)
 
     if args.simulate:
-        from lpctl.launchpad.simulator import TerminalDevice
+        from launchpad_lights.launchpad.simulator import TerminalDevice
         device = TerminalDevice()
     else:
         # Newer Windows builds let two apps share the Launchpad, and two copies would fight over the LEDs.
-        from lpctl.winutil import claim_single_instance, message_box
+        from launchpad_lights.winutil import claim_single_instance, message_box
         if not claim_single_instance():
-            log.warning("lpctl is already running; exiting")
+            log.warning("Already running; exiting")
             if sys.stdout:
-                print("lpctl is already running. Quit it from the tray icon first.")
+                print("Launchpad Lights is already running. Quit it from the tray icon first.")
             else:
-                message_box("Launchpad Mini", "lpctl is already running. It's in the system tray.")
+                message_box("Launchpad Lights", "Launchpad Lights is already running. It's in the system tray.")
             return
-        from lpctl.launchpad.device import LaunchpadDevice
+        from launchpad_lights import autostart
+        autostart.migrate_old()
+        from launchpad_lights.launchpad.device import LaunchpadDevice
         dev_cfg = config.section("device")
         device = LaunchpadDevice(dev_cfg.get("port_name", "Launchpad Mini"), bool(dev_cfg.get("rapid_update", True)),
                                  float(dev_cfg.get("retry_seconds", 2.0)))
 
-    from lpctl.app import App
+    from launchpad_lights.app import App
     app = App(config, device, locked_mode="test_pattern" if args.test else None, start_mode=args.mode)
     for sig in ("SIGTERM", "SIGBREAK"):
         if hasattr(signal, sig):
@@ -109,7 +111,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.test or args.simulate or args.no_gui:
         app.run()
     else:
-        from lpctl.gui import run_gui
+        from launchpad_lights.gui import run_gui
         run_gui(app, start_hidden=args.hidden)
 
 
