@@ -20,6 +20,7 @@ SIDE_ACTIONS = {0: "prev", 1: "play_pause", 2: "next"}
 class NowPlayingMode(Mode):
     name = "now_playing"
     fps = 30
+    side_labels = ("Previous track", "Play / pause", "Next track")
     services = ("media",)
 
     def __init__(self, ctx):

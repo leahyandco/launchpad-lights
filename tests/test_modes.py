@@ -97,10 +97,10 @@ def test_clock_views_render(tmp_path):
 
 def test_pomodoro_phases(tmp_path):
     Clock(ctx(tmp_path))
-    POMODORO.cfg = {"work_minutes": 1 / 60, "break_minutes": 1 / 60, "long_break_minutes": 1 / 60}
+    POMODORO.cfg = {"work_minutes": 1 / 60, "break_minutes": 1, "long_break_minutes": 1}
     POMODORO.reset()
     POMODORO.toggle()
-    POMODORO._last -= 2  # pretend 2 s passed
+    POMODORO._last -= 2  # pretend 2 s passed: the 1 s work phase is over, 1 s into the break
     POMODORO.tick()
     assert POMODORO.phase == "break" and POMODORO.completed == 1
     POMODORO.reset()
@@ -112,6 +112,8 @@ def test_macro_pad_pages_and_actions(tmp_path, monkeypatch):
     monkeypatch.setattr(macro_pad, "run_action", lambda b: fired.append(b["label"]))
     monkeypatch.setattr(macro_pad, "mic_muted", lambda: True)
     mode = macro_pad.MacroPad(ctx(tmp_path))
+    mode.on_enter()  # starts the mic poller
+    time.sleep(0.1)
     f = Frame()
     mode.render(f, 0.05)
     assert f.get(0, 0) == (0, 3)  # Prev, green
@@ -123,6 +125,84 @@ def test_macro_pad_pages_and_actions(tmp_path, monkeypatch):
     f = Frame()
     mode.render(f, 0.05)
     assert lit(f) == 0 and mode.page == 2
+    mode.on_exit()
+
+
+def test_macro_pad_ignores_buttons_off_the_grid(tmp_path):
+    c = ctx(tmp_path)
+    c.config.section("macro_pad")["buttons"] = [
+        {"page": 1, "x": 0, "y": 10, "action": "media", "value": "next"},
+        {"page": 1, "x": 8, "y": 0, "action": "media", "value": "next"},
+        {"page": 9, "x": 0, "y": 0, "action": "media", "value": "next"},
+        {"page": 1, "x": "a", "y": 0, "action": "media", "value": "next"},
+        {"page": 1, "x": 2, "y": 3, "action": "media", "value": "next", "colour": "red"},
+    ]
+    mode = macro_pad.MacroPad(c)
+    f = Frame()
+    mode.render(f, 0.05)  # must not raise
+    assert lit(f) == 1 and f.get(2, 3) == (3, 0)
+    # Side button 1 shows the current page; nothing from the bad buttons leaked into side or top LEDs.
+    assert f.leds[64] == (0, 3) and f.leds[65:] == [(0, 0)] * 15
+
+
+def test_pomodoro_catches_up_and_banks_time(tmp_path):
+    Clock(ctx(tmp_path))
+    POMODORO.cfg = {"work_minutes": 1, "break_minutes": 1, "long_break_minutes": 1}
+    POMODORO.reset()
+    POMODORO.toggle()
+    POMODORO._last -= 150  # 2.5 minutes with nothing ticking: work, break, then 30 s into work
+    POMODORO.tick()
+    assert POMODORO.phase == "work" and POMODORO.completed == 1
+    assert 25 <= POMODORO.remaining <= 31
+    POMODORO._last -= 10
+    POMODORO.toggle()  # pausing banks the 10 s instead of losing it
+    assert not POMODORO.running and 15 <= POMODORO.remaining <= 21
+
+
+def test_pomodoro_picks_up_new_length_before_starting(tmp_path):
+    Clock(ctx(tmp_path))
+    POMODORO.cfg = {"work_minutes": 25}
+    POMODORO.reset()
+    POMODORO.cfg["work_minutes"] = 50
+    POMODORO.refresh_lengths()
+    assert POMODORO.total == 50 * 60
+
+
+def test_pomodoro_notifies_on_phase_change(tmp_path):
+    Clock(ctx(tmp_path))
+    seen = []
+    POMODORO.on_phase = seen.append
+    try:
+        POMODORO.cfg = {"work_minutes": 1, "break_minutes": 5}
+        POMODORO.reset()
+        POMODORO.toggle()
+        POMODORO._last -= 61
+        POMODORO.tick()
+    finally:
+        POMODORO.on_phase = None
+    assert seen == ["Pomodoro: Break, 5 minutes."]
+
+
+def test_scroller_enters_without_stalling():
+    s = Scroller(speed=1.0)
+    s.set([("Hello there", (3, 3))])
+    starts = []
+    for _ in range(3):
+        f = Frame()
+        s.draw(f, 0.5)
+        starts.append(s.pos)
+    assert starts == [-7.5, -7.0, -6.5]
+
+
+def test_scroller_keep_position():
+    s = Scroller(speed=10.0)
+    s.set([("12:34", (3, 3))])
+    s.draw(Frame(), 1.0)
+    pos = s.pos
+    s.set([("12:35", (3, 3))], keep_position=True)
+    assert s.pos == pos
+    s.set([("Something longer", (3, 3))], keep_position=True)
+    assert s.pos == -8.0
 
 
 def test_parse_combo():

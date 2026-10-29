@@ -60,6 +60,10 @@ The registry entry points at this folder's `.venv`. If you moved or recloned the
 
 The visualiser runs at 40 fps by default, and big changes are sent as a single rapid update. If it can't keep up on your machine, lower `fps` in `[visualiser]`. If the LEDs show garbage after a big change, set `rapid_update = false` in `[device]`. That's slower, but every LED is addressed individually.
 
+## Settings went back to defaults
+
+`config.toml` had a syntax error, usually from a hand edit. The broken file is next to it as `config.bad.toml`, and the log says what was wrong with it. Copy your changes across, or set them again in the settings window.
+
 ## "Launchpad Lights hit an error and stopped"
 
 The render loop crashed. The full traceback is in the log. Restart launchpad_lights. If it happens again, the log entry is what's needed to fix it.

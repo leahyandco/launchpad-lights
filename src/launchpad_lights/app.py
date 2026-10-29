@@ -8,6 +8,7 @@ from launchpad_lights.launchpad.events import ButtonEvent
 from launchpad_lights.launchpad.frame import Frame
 from launchpad_lights.modes import registry
 from launchpad_lights.modes.base import Mode, ModeContext
+from launchpad_lights.modes.clock import POMODORO
 from launchpad_lights.services import ServiceManager
 from launchpad_lights.services.audio import AudioService
 from launchpad_lights.services.media import MediaService
@@ -34,6 +35,9 @@ class App:
             "media": MediaService,
         })
         self.ctx = ModeContext(config, self.services)
+        POMODORO.cfg = config.section("clock")
+        if POMODORO.total == 0:
+            POMODORO.reset()
         self.mode: Mode | None = None
         self.mode_name: str | None = None
         self.standby = False
@@ -79,11 +83,18 @@ class App:
             self.config.section("app")["modes"] = slots
             self.config.save()
             log.info("Top buttons: %s", ", ".join(s or "-" for s in slots))
+            # The active mode lost its button: move to one the device can still select.
+            if not self.locked and self.mode_name not in slots and any(slots):
+                self.switch(next(s for s in slots if s))
         self.post(apply)
 
     @property
     def status(self) -> str:
         return getattr(self.device, "status", "")
+
+    @property
+    def status_kind(self) -> str:
+        return getattr(self.device, "status_kind", "ok")
 
     def audio_device(self) -> str | None:
         try:
@@ -101,10 +112,18 @@ class App:
 
     def _enter(self, name: str) -> None:
         cls = registry.get(name)
-        for s in cls.services:
-            self.services.acquire(s)
-        self.mode, self.mode_name = cls(self.ctx), name
-        self.mode.on_enter()
+        acquired = []
+        try:
+            for s in cls.services:
+                self.services.acquire(s)
+                acquired.append(s)
+            mode = cls(self.ctx)
+            mode.on_enter()
+        except Exception:
+            for s in acquired:
+                self.services.release(s)
+            raise
+        self.mode, self.mode_name = mode, name
 
     def _exit(self) -> None:
         if self.mode is None:
@@ -126,7 +145,12 @@ class App:
             return
         self._exit()
         self.standby = False
-        self._enter(name)
+        try:
+            self._enter(name)
+        except Exception:
+            log.exception("Mode %s failed to start", name)
+            self.mode_name = name  # keep its button lit so the user can see what they picked
+            return
         log.info("Mode: %s", name)
         if not self.locked:
             self.config.section("app")["startup_mode"] = name
@@ -138,7 +162,10 @@ class App:
         if self.standby:
             self._exit()  # releases services, e.g. the audio stream
         elif self.mode_name:
-            self._enter(self.mode_name)
+            try:
+                self._enter(self.mode_name)
+            except Exception:
+                log.exception("Mode %s failed to start", self.mode_name)
 
     # Input
 
@@ -146,7 +173,8 @@ class App:
         if ev.kind == "standby":
             self.toggle_standby()
         elif self.locked:
-            self.mode.on_event(ev)
+            if self.mode is not None and not self.standby:
+                self.mode.on_event(ev)
         elif ev.kind == "top":
             if ev.index == STANDBY_BUTTON:
                 # Short press selects mode 8, a long hold toggles standby.
@@ -182,7 +210,11 @@ class App:
                 ev = self.device.events.get_nowait()
             except queue.Empty:
                 break
-            self._handle(ev, now)
+            try:
+                self._handle(ev, now)
+            except Exception:
+                log.exception("Handling %s failed", ev)
+        POMODORO.tick()  # runs whichever mode is showing, so breaks start on time
         if self._save_at is not None and now >= self._save_at:
             self._save_at = None
             self.config.save()
@@ -201,13 +233,21 @@ class App:
                 return
             except KeyError as e:
                 log.error("%s", e)
-        raise SystemExit("No usable mode configured")
+            except Exception:
+                log.exception("Mode %s failed to start", name)
+        raise RuntimeError("No usable mode configured")
 
     def render_frame(self, dt: float) -> Frame:
         frame = Frame()
         if self.standby or self.mode is None:
             return frame
-        self.mode.render(frame, dt)
+        try:
+            self.mode.render(frame, dt)
+        except Exception:
+            # One broken mode shouldn't take the app down. Stop it; its top button can restart it.
+            log.exception("Mode %s crashed while drawing; stopping it", self.mode_name)
+            self._exit()
+            frame = Frame()
         if not self.locked:
             for i in range(8):
                 frame.set_top(i, ACTIVE_TOP if self.slots[i] == self.mode_name else (0, 0))
@@ -215,9 +255,9 @@ class App:
 
     def run(self) -> None:
         self._running = True
-        self._start_mode()
         last = time.perf_counter()
         try:
+            self._start_mode()
             while self._running:
                 now = time.perf_counter()
                 self.device.maintain(now)
@@ -226,6 +266,7 @@ class App:
                 self.last_frame = self.render_frame(dt)
                 self.device.show(self.last_frame)
                 fps = self.mode.fps if (self.mode and not self.standby) else STANDBY_FPS
+                fps = min(max(float(fps), 1.0), 120.0)
                 delay = 1 / fps - (time.perf_counter() - now)
                 if delay > 0:
                     time.sleep(delay)
@@ -237,8 +278,10 @@ class App:
             raise
         finally:
             log.info("Shutting down")
+            self.device.close()  # LEDs off first: stopping audio can take a few seconds
             if self._save_at is not None:
                 self.config.save()
-            self._exit()
-            self.services.stop_all()
-            self.device.close()
+            try:
+                self._exit()
+            finally:
+                self.services.stop_all()

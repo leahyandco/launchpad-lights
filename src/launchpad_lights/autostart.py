@@ -45,13 +45,29 @@ def set_enabled(enabled: bool) -> None:
             log.info("Start with Windows disabled")
 
 
-def migrate_old() -> None:
-    """Swap a pre-rename "lpctl" Run entry for one under the new name."""
-    if not _has(OLD_VALUE):
-        return
+def _stored_program() -> Path | None:
     try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
-            winreg.DeleteValue(key, OLD_VALUE)
-        set_enabled(True)
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
+            value, _ = winreg.QueryValueEx(key, VALUE)
+    except OSError:
+        return None
+    value = value.strip()
+    if value.startswith('"'):
+        return Path(value[1:].split('"', 1)[0])
+    return Path(value.split(" ", 1)[0])
+
+
+def repair() -> None:
+    """Called at startup. Swaps a pre-rename "lpctl" entry for the new name, and rewrites an entry
+    whose program no longer exists (folder moved, venv deleted, exe replaced) to point at this copy."""
+    try:
+        if _has(OLD_VALUE):
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
+                winreg.DeleteValue(key, OLD_VALUE)
+            set_enabled(True)
+        program = _stored_program()
+        if program is not None and not program.exists():
+            log.info("Start with Windows pointed at %s, which no longer exists. Fixing it.", program)
+            set_enabled(True)
     except OSError as e:
-        log.warning("Could not migrate the old start-with-Windows entry: %s", e)
+        log.warning("Could not repair the start-with-Windows entry: %s", e)

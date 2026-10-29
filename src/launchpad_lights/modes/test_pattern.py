@@ -27,6 +27,7 @@ def led_index(event: ButtonEvent) -> int:
 class TestPattern(Mode):
     name = "test_pattern"
     fps = 40
+    side_labels = ("Lights red while held",) * 8
 
     def __init__(self, ctx):
         super().__init__(ctx)

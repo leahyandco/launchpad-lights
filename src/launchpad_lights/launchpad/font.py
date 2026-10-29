@@ -3,6 +3,7 @@
 large: classic 5x7, upper and lower case.
 small: 3x5 capitals, variable width, so roughly two characters fit on the grid at once.
 """
+import math
 import unicodedata
 
 from .frame import Color, Frame
@@ -121,16 +122,19 @@ class Scroller:
         if font != self.font:
             self.font, self.key = font, None  # force a re-render on the next set()
 
-    def set(self, segments: list[tuple[str, Color]]) -> None:
+    def set(self, segments: list[tuple[str, Color]], keep_position: bool = False) -> None:
+        """keep_position: if the new text is the same width, carry on from the current scroll position."""
         key = tuple(segments)
         if key != self.key:
+            old_len = len(self.cols)
             self.key = key
             self.cols = render_columns(segments, self.font)
             if self.cols and self.cols[-1][0] == 0:
                 self.cols.pop()  # trailing gap only matters when wrapping
             if len(self.cols) > 8:
                 self.cols += [(0, (0, 0))] * self.gap
-                self.pos = -8.0  # enter from the right edge
+                if not (keep_position and len(self.cols) == old_len):
+                    self.pos = -8.0  # enter from the right edge
             else:
                 self.pos = 0.0
 
@@ -143,7 +147,7 @@ class Scroller:
             return
         self.pos += self.speed * dt
         n = len(self.cols)
-        start = int(self.pos)
+        start = math.floor(self.pos)  # int() would round -0.5 up to 0 and stall a column on entry
         visible = [self.cols[(start + x) % n] if start + x >= 0 else (0, (0, 0)) for x in range(8)]
         blit(frame, visible, 0, top, self.height)
         if self.pos >= n:

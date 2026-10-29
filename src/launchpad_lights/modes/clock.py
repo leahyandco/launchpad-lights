@@ -37,18 +37,29 @@ class Pomodoro:
         self._last = 0.0
         self.flash_until = 0.0
         self.cfg: dict = {}
+        self.on_phase = None  # called with a short message when a phase ends, e.g. to notify from the tray
 
     def minutes(self, phase: str) -> float:
         key = {"work": "work_minutes", "break": "break_minutes", "long_break": "long_break_minutes"}[phase]
-        return float(self.cfg.get(key, {"work": 25, "break": 5, "long_break": 15}[phase]))
+        try:
+            value = float(self.cfg.get(key, {"work": 25, "break": 5, "long_break": 15}[phase]))
+        except (TypeError, ValueError):
+            value = {"work": 25, "break": 5, "long_break": 15}[phase]
+        return max(value, 1 / 60)  # never zero, or tick() would spin through phases forever
 
     def reset(self) -> None:
         self.phase, self.completed, self.running = "work", 0, False
         self.total = self.remaining = self.minutes("work") * 60
 
+    def refresh_lengths(self) -> None:
+        """Pick up changed lengths if the current phase hasn't started counting down yet."""
+        if not self.running and self.remaining == self.total:
+            self.total = self.remaining = self.minutes(self.phase) * 60
+
     def toggle(self) -> None:
         if self.total == 0:
             self.reset()
+        self.tick()  # bank the time elapsed so far before pausing or resuming
         self.running = not self.running
         self._last = time.monotonic()
         log.info("Pomodoro %s (%s)", "started" if self.running else "paused", self.phase)
@@ -57,8 +68,10 @@ class Pomodoro:
         now = time.monotonic()
         if self.running:
             self.remaining -= now - self._last
-            if self.remaining <= 0:
+            while self.remaining <= 0:  # catch up across phases if nothing ticked for a while
+                overshoot = -self.remaining
                 self._next_phase()
+                self.remaining -= overshoot
         self._last = now
 
     def _next_phase(self) -> None:
@@ -70,6 +83,12 @@ class Pomodoro:
         self.total = self.remaining = self.minutes(self.phase) * 60
         self.flash_until = time.monotonic() + DONE_FLASH_S
         log.info("Pomodoro: %s for %.0f min", self.phase.replace("_", " "), self.total / 60)
+        if self.on_phase:
+            what = "Back to work" if self.phase == "work" else "Long break" if self.phase == "long_break" else "Break"
+            try:
+                self.on_phase(f"Pomodoro: {what}, {self.total / 60:.0f} minutes.")
+            except Exception:
+                log.exception("Pomodoro notification failed")
 
     def left(self) -> float:
         """Seconds remaining right now, without advancing state (safe from other threads)."""
@@ -89,6 +108,8 @@ POMODORO = Pomodoro()
 class Clock(Mode):
     name = "clock"
     fps = 20
+    side_labels = ("Scrolling clock", "Binary clock", "Pomodoro", "Flip clock", "", "Pomodoro start/pause",
+                   "Pomodoro reset", "")
 
     def __init__(self, ctx):
         super().__init__(ctx)
@@ -125,7 +146,6 @@ class Clock(Mode):
 
     def render(self, frame: Frame, dt: float) -> None:
         self.t += dt
-        POMODORO.tick()
         getattr(self, f"_{VIEWS[self.view]}")(frame, dt)
         frame.set_side(self.view, GREEN)
         if VIEWS[self.view] == "pomodoro":
@@ -135,7 +155,8 @@ class Clock(Mode):
     def _clock(self, frame, dt):
         now = time.localtime()
         h = now.tm_hour if self.cfg.get("24h", True) else (now.tm_hour % 12 or 12)
-        self.scroller.set([(f"{h:02d}", AMBER), (":", RED), (f"{now.tm_min:02d}", GREEN)])
+        # keep_position: when the minute ticks over, carry on scrolling instead of restarting.
+        self.scroller.set([(f"{h:02d}", AMBER), (":", RED), (f"{now.tm_min:02d}", GREEN)], keep_position=True)
         self.scroller.draw(frame, dt)
         # Seconds as a dot travelling along the bottom row.
         frame.set(now.tm_sec * 8 // 60, 7, RED_DIM)

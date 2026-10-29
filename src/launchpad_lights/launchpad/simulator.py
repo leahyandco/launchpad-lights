@@ -18,9 +18,9 @@ except ImportError:  # not Windows
 
 def _cell(c: Color) -> str:
     if c == OFF:
-        return "\x1b[38;2;60;60;60m·"
+        return "\x1b[38;2;60;60;60m\u00b7"
     r, g = c
-    return f"\x1b[38;2;{85 * r};{70 * g};0m●"
+    return f"\x1b[38;2;{85 * r};{70 * g};0m\u25cf"
 
 
 class TerminalDevice:

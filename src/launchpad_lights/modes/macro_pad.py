@@ -57,6 +57,7 @@ def run_action(button: dict) -> None:
 class MacroPad(Mode):
     name = "macro_pad"
     fps = 20
+    side_labels = tuple(f"Page {i}" for i in range(1, PAGES + 1))
 
     def __init__(self, ctx):
         super().__init__(ctx)
@@ -64,20 +65,41 @@ class MacroPad(Mode):
         self.page = min(max(int(self.cfg.get("page", 1)), 1), PAGES)
         self.flash: dict[int, float] = {}  # pad index -> time the flash ends
         self.mic: bool | None = None
-        self._next_mic_poll = 0.0
+        self._mic_wake = threading.Event()
+        self._mic_stop = threading.Event()
         self._build()
 
     def _build(self) -> None:
         self.buttons: dict[tuple[int, int], dict] = {}
         for b in self.cfg.get("buttons", []):
             try:
-                self.buttons[(int(b.get("page", 1)), int(b["y"]) * 8 + int(b["x"]))] = b
-            except (KeyError, ValueError, TypeError):
+                page, x, y = int(b.get("page", 1)), int(b["x"]), int(b["y"])
+            except (KeyError, ValueError, TypeError, AttributeError):
                 log.warning("Ignoring bad macro button %r", b)
+                continue
+            if not (1 <= page <= PAGES and 0 <= x < 8 and 0 <= y < 8):
+                log.warning("Ignoring macro button outside the grid (page %s, x %s, y %s)", page, x, y)
+                continue
+            self.buttons[(page, y * 8 + x)] = b
         self.has_mic = any(b.get("action") == "mic_mute" for b in self.buttons.values())
 
     def on_config_changed(self) -> None:
         self._build()
+
+    def on_enter(self) -> None:
+        # Mic state is a COM call; poll it on its own thread so a slow audio service can't stall the LEDs.
+        threading.Thread(target=self._poll_mic, name="mic", daemon=True).start()
+
+    def on_exit(self) -> None:
+        self._mic_stop.set()
+        self._mic_wake.set()
+
+    def _poll_mic(self) -> None:
+        while not self._mic_stop.is_set():
+            if self.has_mic:
+                self.mic = mic_muted()
+            self._mic_wake.wait(MIC_POLL_S)
+            self._mic_wake.clear()
 
     def on_event(self, event: ButtonEvent) -> None:
         if not event.pressed:
@@ -92,13 +114,10 @@ class MacroPad(Mode):
                 self.flash[event.index] = time.monotonic() + FLASH_S
                 threading.Thread(target=run_action, args=(button,), daemon=True).start()
                 if button.get("action") == "mic_mute":
-                    self._next_mic_poll = 0.0
+                    threading.Timer(0.1, self._mic_wake.set).start()  # refresh the LED right after toggling
 
     def render(self, frame: Frame, dt: float) -> None:
         now = time.monotonic()
-        if self.has_mic and now >= self._next_mic_poll:
-            self.mic = mic_muted()
-            self._next_mic_poll = now + MIC_POLL_S
         for (page, index), b in self.buttons.items():
             if page != self.page:
                 continue

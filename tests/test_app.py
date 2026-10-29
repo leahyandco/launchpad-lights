@@ -77,6 +77,31 @@ def test_hold_top_right_toggles_standby(tmp_path):
     assert app.mode_name == "dummy"
 
 
+@registry.register
+class Broken(Mode):
+    name = "broken"
+
+    def render(self, frame, dt):
+        raise RuntimeError("boom")
+
+
+def test_a_crashing_mode_is_stopped_not_fatal(tmp_path):
+    app = make_app(tmp_path)
+    app.switch("broken")
+    frame = app.render_frame(0.01)
+    assert app.mode is None and frame.leds == [(0, 0)] * 80
+    app.switch("broken")  # its button can start it again
+    assert app.mode is not None
+
+
+def test_unassigning_the_active_mode_moves_to_another(tmp_path):
+    app = make_app(tmp_path)
+    app.switch("test_pattern")
+    app.set_slots(["dummy", "", "", "", "", "", "", ""])
+    app._poll(0.0)
+    assert app.mode_name == "dummy"
+
+
 def test_short_press_top_right_selects_slot_8(tmp_path):
     app = make_app(tmp_path)
     app._handle(ButtonEvent("top", 1, True), 0.0)

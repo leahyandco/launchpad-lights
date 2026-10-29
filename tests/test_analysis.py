@@ -104,6 +104,14 @@ def test_estimate_bpm_folds_octaves():
     assert estimate_bpm([0, 0.5]) == 0.0
 
 
+def test_bands_stay_distinct_at_high_sample_rates():
+    for rate, block in ((96000, 2048), (192000, 4096), (96000, 1024), (192000, 1024)):
+        an = Analyzer(rate, block)
+        starts = [s.start for s in an.band_slices]
+        assert starts == sorted(set(starts)), (rate, block, starts)
+        assert all(s.stop > s.start for s in an.band_slices)
+
+
 def test_stereo_levels():
     an = Analyzer(RATE, BLOCK)
     left = sine(1000, 1.0, 0.5)

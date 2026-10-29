@@ -11,10 +11,10 @@ Use Settings > Macro pad.
 1. Pick the page.
 2. Click a pad.
 3. Set the label, action, value and colour.
-4. Hit Test to try it without saving.
-5. Hit Save.
+4. Hit Test to try it without saving. A hotkey test waits 2 seconds so you can click the window it should go to.
+5. Hit Save. Unknown key names and empty commands are rejected with a message under the buttons.
 
-Clear removes the button. Changes go live on the device as soon as you save.
+Clear removes the button. Changes go live on the device as soon as you save. Browse picks a program or file for `run` and `url` actions. Switching page drops the selection, so a save never lands on a pad you can't see.
 
 You can also edit `[[macro_pad.buttons]]` in `config.toml` by hand while Launchpad Lights isn't running. Each button looks like this:
 

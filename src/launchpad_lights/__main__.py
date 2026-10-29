@@ -95,7 +95,7 @@ def main(argv: list[str] | None = None) -> None:
                 message_box("Launchpad Lights", "Launchpad Lights is already running. It's in the system tray.")
             return
         from launchpad_lights import autostart
-        autostart.migrate_old()
+        autostart.repair()
         from launchpad_lights.launchpad.device import LaunchpadDevice
         dev_cfg = config.section("device")
         device = LaunchpadDevice(dev_cfg.get("port_name", "Launchpad Mini"), bool(dev_cfg.get("rapid_update", True)),

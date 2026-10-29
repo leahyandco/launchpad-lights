@@ -21,6 +21,7 @@ class Mode:
     name: ClassVar[str] = ""
     fps: float = 30.0  # target render rate; may be changed at runtime (e.g. when idle)
     services: ClassVar[tuple[str, ...]] = ()  # acquired by the app before on_enter, released after on_exit
+    side_labels: ClassVar[tuple[str, ...]] = ()  # what side buttons 1-8 do, shown next to the GUI preview
 
     def __init__(self, ctx: ModeContext):
         self.ctx = ctx

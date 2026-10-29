@@ -88,6 +88,7 @@ def draw_bar(frame: Frame, x: int, rows: int, peak: int = 0) -> None:
 class Visualiser(Mode):
     name = "visualiser"
     services = ("audio",)
+    side_labels = (*SUB_MODE_LABELS[:DIRECT_BUTTONS], "More views (cycles)", "Auto-gain speed")
 
     def __init__(self, ctx):
         super().__init__(ctx)

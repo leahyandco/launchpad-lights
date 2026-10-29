@@ -51,9 +51,9 @@ ERROR_ALREADY_EXISTS = 183
 def claim_single_instance(name: str = "Local\\LaunchpadLights") -> bool:
     """False if another copy already holds the named mutex. The handle lives until exit."""
     global _instance_mutex
-    kernel32 = ctypes.windll.kernel32
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # read the error before anything else resets it
     _instance_mutex = kernel32.CreateMutexW(None, False, name)
-    return kernel32.GetLastError() != ERROR_ALREADY_EXISTS
+    return ctypes.get_last_error() != ERROR_ALREADY_EXISTS
 
 
 def message_box(title: str, text: str) -> None:

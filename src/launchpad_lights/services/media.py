@@ -25,10 +25,10 @@ class MediaService:
         self._thread: threading.Thread | None = None
 
     def start(self) -> None:
-        if self._thread and self._thread.is_alive():
+        if self._thread and self._thread.is_alive() and not self._stop.is_set():
             return
-        self._stop.clear()
-        self._thread = threading.Thread(target=self._run, name="media", daemon=True)
+        self._stop = threading.Event()  # fresh per run; see AudioService.start
+        self._thread = threading.Thread(target=self._run, args=(self._stop,), name="media", daemon=True)
         self._thread.start()
 
     def stop(self) -> None:
@@ -40,18 +40,17 @@ class MediaService:
     def latest(self) -> NowPlaying:
         return self._info
 
-    def _run(self) -> None:
+    def _run(self, stop: threading.Event) -> None:
         try:
             from winrt.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as Manager
-        except ImportError as e:
-            log.warning("Now playing unavailable (winrt not installed): %s", e)
-            return
-        asyncio.run(self._loop(Manager))
+            asyncio.run(self._loop(Manager, stop))
+        except Exception:
+            log.exception("Now playing stopped working")
 
-    async def _loop(self, Manager) -> None:
+    async def _loop(self, Manager, stop: threading.Event) -> None:
         manager = await Manager.request_async()
         last_error = None
-        while not self._stop.is_set():
+        while not stop.is_set():
             try:
                 session = manager.get_current_session()
                 if session is None:

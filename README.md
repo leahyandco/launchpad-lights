@@ -81,7 +81,9 @@ Scrolling text uses a small 3x5 font by default, which fits about two characters
 
 ## Settings window
 
-The preview on the left mirrors the Launchpad live. Clicking it works the same as pressing the real buttons.
+The preview on the left mirrors the Launchpad live. Clicking it works the same as pressing the real buttons. Next to the side buttons it lists what each one does in the current mode.
+
+The line at the top shows whether the Launchpad is connected, with the reason when it isn't, and what audio is being captured.
 
 Closing the window hides it to the tray, and Launchpad Lights keeps running. To exit, use Quit in the window or the tray menu. Quitting turns all the LEDs off.
 
@@ -92,7 +94,9 @@ The tabs:
 - **Macro pad**: click a pad and set its label, action, value and colour. Test runs the action without saving it.
 - **Clock**: view, 24-hour time, Pomodoro lengths, start/pause and reset.
 - **Top buttons**: which mode each top button selects.
-- **General**: start with Windows, text size, and buttons to open the config folder and the logs.
+- **General**: start with Windows, text size, and an Advanced section for scroll speed, frame rate, idle timing, standby hold time and the MIDI port name. Buttons open the config folder and the logs.
+
+Esc hides the window. Ctrl+Q quits.
 
 The tray menu covers the quick stuff: modes, visualiser view, auto-cycle, auto gain, standby, start with Windows and quit.
 
@@ -104,7 +108,7 @@ The path is fixed when you tick the box. If you move the folder, untick it and t
 
 ## Config and logs
 
-Settings live in `%APPDATA%\Launchpad Lights\config.toml`. Launchpad Lights creates the file on first run and rewrites it whenever you change something, so comments you add get lost. Use the settings window. `config.example.toml` documents every key.
+Settings live in `%APPDATA%\Launchpad Lights\config.toml`. Launchpad Lights creates the file on first run and rewrites it whenever you change something, so comments you add get lost. Use the settings window. `config.example.toml` documents every key. If the file has a typo, Launchpad Lights starts with defaults and keeps the broken file as `config.bad.toml`. A value of the wrong type falls back to its default, and the log says which one.
 
 Logs go to `%APPDATA%\Launchpad Lights\logs\launchpad-lights.log`. That file is rotated at 1 MB and three old copies are kept. It records device connects and disconnects, audio device changes, mode switches and errors. It doesn't log per frame.
 

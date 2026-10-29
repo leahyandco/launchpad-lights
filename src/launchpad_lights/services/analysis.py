@@ -65,7 +65,9 @@ class Analyzer:
         self._norm = 2.0 / float(self.window.sum())
         freqs = np.fft.rfftfreq(block, 1.0 / rate)
         edges = np.searchsorted(freqs, np.geomspace(fmin, min(fmax, rate / 2), bands + 1))
-        self.band_slices = [slice(lo, max(hi, lo + 1)) for lo, hi in zip(edges[:-1], edges[1:])]
+        for i in range(1, len(edges)):  # every band gets its own bins, even when the low bands are narrower than one
+            edges[i] = max(edges[i], edges[i - 1] + 1)
+        self.band_slices = [slice(lo, hi) for lo, hi in zip(edges[:-1], edges[1:])]
         # Music has less energy up high; tilt so the top bands are not permanently dim.
         self.tilt = tilt_db * np.arange(bands)
         self.buf = np.zeros(block, np.float32)

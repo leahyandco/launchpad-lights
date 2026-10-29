@@ -79,6 +79,40 @@ def migrate_old_dir() -> None:
         log.info("Copied settings from %s", old)
 
 
+def _coerce(data: dict) -> None:
+    """Fix values of the wrong type (e.g. idle_timeout = "30s") by converting or falling back to the default."""
+    for section, defaults in DEFAULTS.items():
+        values = data.get(section)
+        if not isinstance(values, dict):
+            data[section] = copy.deepcopy(defaults)
+            continue
+        for key, default in defaults.items():
+            if key not in values:
+                continue
+            value = values[key]
+            try:
+                if isinstance(default, bool):
+                    ok = isinstance(value, bool)
+                elif isinstance(default, (int, float)):
+                    if isinstance(value, bool):
+                        raise ValueError
+                    value = type(default)(value)
+                    ok = True
+                elif isinstance(default, str):
+                    ok = isinstance(value, str)
+                elif isinstance(default, list):
+                    ok = isinstance(value, list)
+                else:
+                    ok = True
+            except (TypeError, ValueError):
+                ok = False
+            if ok:
+                values[key] = value
+            else:
+                log.warning("Config [%s] %s = %r is the wrong type; using %r", section, key, values[key], default)
+                values[key] = copy.deepcopy(default)
+
+
 class Config:
     def __init__(self, path: Path, data: dict):
         self.path = path
@@ -92,10 +126,22 @@ class Config:
         data = copy.deepcopy(DEFAULTS)
         exists = path.exists()
         if exists:
-            with open(path, "rb") as f:
-                for name, values in tomllib.load(f).items():
-                    if isinstance(values, dict):
-                        data.setdefault(name, {}).update(values)
+            try:
+                with open(path, "rb") as f:
+                    loaded = tomllib.load(f)
+            except (tomllib.TOMLDecodeError, OSError, UnicodeDecodeError) as e:
+                # A hand-edit typo shouldn't stop the app starting. Keep the broken file for reference.
+                bad = path.with_suffix(".bad.toml")
+                log.error("Config %s is invalid (%s). Using defaults; the broken file is saved as %s", path, e, bad)
+                try:
+                    path.replace(bad)
+                except OSError:
+                    pass
+                loaded, exists = {}, False
+            for name, values in loaded.items():
+                if isinstance(values, dict):
+                    data.setdefault(name, {}).update(values)
+            _coerce(data)
         if data["app"].get("modes") == OLD_DEFAULT_MODES:  # untouched first-release layout: pick up new modes
             data["app"]["modes"] = list(DEFAULTS["app"]["modes"])
         cfg = cls(path, data)

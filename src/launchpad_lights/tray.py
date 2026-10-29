@@ -65,8 +65,9 @@ class Tray:
             self._slots = list(app.slots)
             self.icon.menu = self._menu()
             self._state = None
-        state = (app.mode_name, app.standby, self.viz.get("sub_mode"), self.viz.get("sensitivity"),
-                 self.viz.get("auto_gain"), self.viz.get("auto_cycle"))
+        cycling = bool(self.viz.get("auto_cycle"))
+        state = (app.mode_name, app.standby, None if cycling else self.viz.get("sub_mode"),
+                 self.viz.get("sensitivity"), self.viz.get("auto_gain"), cycling, autostart.is_enabled())
         if state == self._state:
             return
         self._state = state

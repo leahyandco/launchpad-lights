@@ -32,6 +32,7 @@ class LaunchpadDevice:
         self._next_check = 0.0
         self._next_full = 0.0
         self._problem: str | None = None
+        self._problem_kind = "connecting"
 
     @property
     def connected(self) -> bool:
@@ -42,6 +43,11 @@ class LaunchpadDevice:
         if self.connected:
             return f"Connected: {self._out_name}"
         return self._problem or "Connecting..."
+
+    @property
+    def status_kind(self) -> str:
+        """ok, connecting, missing, busy or error. The GUI turns this into a coloured status line."""
+        return "ok" if self.connected else self._problem_kind
 
     def maintain(self, now: float) -> None:
         """Called every loop iteration; checks the port every retry_seconds."""
@@ -56,10 +62,11 @@ class LaunchpadDevice:
             else:
                 self._try_open()
         except Exception as e:  # a MIDI backend failure must not take the render loop down
-            self._report(f"MIDI error: {e}.")
+            self._report(f"MIDI error: {e}.", "error")
 
-    def _report(self, problem: str) -> None:
+    def _report(self, problem: str, kind: str) -> None:
         # Log each distinct problem once rather than every retry.
+        self._problem_kind = kind
         if problem != self._problem:
             log.warning("%s Retrying every %.0fs.", problem, self.retry_seconds)
             self._problem = problem
@@ -67,7 +74,7 @@ class LaunchpadDevice:
     def _try_open(self) -> None:
         out_name = find_port(mido.get_output_names(), self.port_name)
         if not out_name:
-            self._report(f"No MIDI output matching {self.port_name!r}. Is the Launchpad plugged in?")
+            self._report(f"No MIDI output matching {self.port_name!r}. Is the Launchpad plugged in?", "missing")
             return
         in_name = find_port(mido.get_input_names(), self.port_name)
         try:
@@ -75,7 +82,8 @@ class LaunchpadDevice:
         except Exception as e:
             self._report(
                 f"Found {out_name!r} but could not open it ({e}). It is probably held by another MIDI app "
-                "(Ableton Live, Novation Components, a DAW). Close it."
+                "(Ableton Live, Novation Components, a DAW). Close it.",
+                "busy",
             )
             return
         inp = None
