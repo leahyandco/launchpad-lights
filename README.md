@@ -1,66 +1,114 @@
 # lpctl
 
-A Windows controller for the original Novation Launchpad Mini (MK1/MK2, red/green LEDs) with
-pluggable modes: an audio visualiser, now playing, a macro pad, a clock and Pomodoro timer.
-Runs from the system tray with a settings window.
+lpctl turns an original Novation Launchpad Mini into a desktop controller for Windows. It does audio visualisation, now playing, a macro pad, and a clock with a Pomodoro timer. It runs from the system tray.
 
-## Features
+It targets the red/green Launchpad Mini (MK1 and MK2). The Mini MK3, Launchpad X and other RGB models use a different protocol and are not supported.
 
-- **Audio visualiser**: 13 views (spectrum, mirrored, spectrogram, VU, beat pulse, fire, radial,
-  fountain, sparkle, plasma, centre spectrum, horizontal bars, bouncing dots). Auto gain works
-  at any volume, with manual gain, range and noise gate controls. BPM detection. Optionally
-  cycles views on the beat.
-- **Single-app capture**: visualise just Spotify, a browser or any other app instead of
-  everything the PC plays (Windows 10 2004 or later).
-- **Now playing**: scrolls the current track from any app with Windows media controls.
-- **Macro pad**: 8 pages of 64 buttons. Each button can be a media key, hotkey, command, URL
-  or mic mute (lit red/green to show the mute state). Edit them in the settings window.
-- **Clock**: scrolling clock, binary clock, and a Pomodoro timer that drains the grid.
-- **Tray icon and settings window**: live clickable preview, every option, start with Windows.
-- Survives unplugging the Launchpad and changes of default audio device.
+## What it does
 
-## Install and run
+| Mode | What you get |
+|---|---|
+| Visualiser | 13 views driven by whatever the PC is playing. Auto gain keeps it readable at any volume. BPM detection, auto-cycling views and single-app capture. |
+| Now playing | Scrolls the current track from Spotify, browsers, Netflix or anything else that shows up in Windows media controls. Side buttons skip and pause. |
+| Macro pad | 8 pages of 64 buttons: media keys, hotkeys, commands, URLs and mic mute. Edit them in the settings window. |
+| Clock | Scrolling clock, binary clock, and a Pomodoro timer that drains the grid as it runs. |
+| Test pattern | Lights every LED in every colour and echoes every button press. Use it to check the hardware. |
 
-Requires Windows 10/11 and [uv](https://docs.astral.sh/uv/).
+You can unplug the Launchpad, switch from headphones to speakers, or restart Spotify. lpctl recovers on its own within a few seconds.
+
+## Requirements
+
+- Windows 10 or 11. Single-app capture needs Windows 10 2004 or later.
+- [uv](https://docs.astral.sh/uv/). It installs Python 3.12 and the dependencies for you.
+- A Launchpad Mini MK1 or MK2. The built-in Windows USB MIDI driver works, so you don't need the Novation driver.
+
+## Install
 
 ```
-uv run lpctl               # tray icon + settings window
-uv run lpctl --hidden      # tray icon only
-uv run lpctl --no-gui      # headless
-uv run lpctl --test        # hardware smoke test, echoes button presses
-uv run lpctl --simulate    # draw in the terminal instead of the device
-uv run lpctl --list-ports  # MIDI ports and audio devices
-uv run pytest              # unit tests
+git clone https://github.com/leahyandco/launchpad-lights.git
+cd launchpad-lights
+uv run lpctl
 ```
 
-The Launchpad Mini works with the built-in Windows USB MIDI driver. Close Ableton, Novation
-Components or anything else using the Launchpad first: Windows only lets one app open it.
+The first run downloads Python and the dependencies. After that, the settings window opens and the icon appears in the tray.
 
-`flash_test.py` is a standalone quick check that the Launchpad responds: `uv run flash_test.py`.
+Windows lets only one app open the Launchpad at a time. Close Ableton, Novation Components and any other MIDI software first. If something else has the port, lpctl logs the problem and retries every 2 seconds until the port is free.
+
+## Running it
+
+| Command | What it does |
+|---|---|
+| `uv run lpctl` | Tray icon and settings window. |
+| `uv run lpctl --hidden` | Tray icon only. Start with Windows uses this. |
+| `uv run lpctl --no-gui` | Headless. Ctrl+C to quit. |
+| `uv run lpctl --test` | Hardware smoke test. Lights every LED and prints every button press. |
+| `uv run lpctl --simulate` | Draws the Launchpad in the terminal instead of using the device. Keys 1-8 are the top buttons, a-h are the side buttons and space toggles standby. |
+| `uv run lpctl --list-ports` | Lists MIDI ports and audio devices. |
+| `uv run lpctl --mode clock` | Starts in a specific mode. |
+| `uv run pytest` | Runs the unit tests. |
+
+`flash_test.py` is a standalone check that the Launchpad responds. It doesn't need the rest of the app: `uv run flash_test.py`.
 
 ## On the device
 
-- Top buttons 1-8 select modes (assign them in Settings > Top buttons). The active one is lit.
-- Hold top button 8 for 1 s: standby (all LEDs off). Hold again to wake.
-- The right-hand side buttons belong to the active mode:
-  - Visualiser: 1-6 pick a view, 7 cycles the other views, 8 cycles auto-gain speed.
-  - Now playing: 1 previous, 2 play/pause, 3 next.
-  - Macro pad: 1-8 switch pages.
-  - Clock: 1 clock, 2 binary clock, 3 Pomodoro (6 start/pause, 7 reset; any pad also starts/pauses).
+The 8 round top buttons pick the mode, and the active one is lit green. Assign modes to them in Settings > Top buttons. The default layout is:
+
+| Top button | Mode |
+|---|---|
+| 1 | Visualiser |
+| 2 | Now playing |
+| 3 | Macro pad |
+| 4 | Clock |
+| 8 | Test pattern |
+
+Holding top button 8 for a second toggles standby, which turns every LED off and stops audio capture. A short press still selects its mode.
+
+The 8 round side buttons belong to whichever mode is active:
+
+| Mode | Side buttons |
+|---|---|
+| Visualiser | 1-6 pick a view. 7 cycles through the other 7 views and lights amber while one of them is showing. 8 cycles auto-gain speed: green is low, amber medium, red high. |
+| Now playing | 1 previous, 2 play/pause, 3 next. |
+| Macro pad | 1-8 switch pages. Pages that have buttons are lit dim green. |
+| Clock | 1 scrolling clock, 2 binary clock, 3 Pomodoro. In Pomodoro, 6 starts and pauses, 7 resets, and any pad also starts and pauses. |
+
+## Settings window
+
+The preview on the left mirrors the Launchpad live. Clicking it works the same as pressing the real buttons.
+
+Closing the window hides it to the tray, and lpctl keeps running. To exit, use Quit in the window or the tray menu. Quitting turns all the LEDs off.
+
+The tabs:
+
+- **Visualiser**: view, auto-cycle, live BPM.
+- **Audio**: capture source (whole system or one app), auto gain, gain, range, noise gate.
+- **Macro pad**: click a pad and set its label, action, value and colour. Test runs the action without saving it.
+- **Clock**: view, 24-hour time, Pomodoro lengths, start/pause and reset.
+- **Top buttons**: which mode each top button selects.
+- **General**: start with Windows, and buttons to open the config folder and the logs.
+
+The tray menu covers the quick stuff: modes, visualiser view, auto-cycle, auto gain, standby, start with Windows and quit.
+
+## Start with Windows
+
+Tick Settings > General > Start with Windows, or use the tray menu. This adds a per-user `Run` registry entry that starts `pythonw.exe -m lpctl --hidden` from this folder's virtual environment. It doesn't need admin rights.
+
+The path is fixed when you tick the box. If you move the folder, untick it and tick it again.
 
 ## Config and logs
 
-`%APPDATA%\lpctl\config.toml` is created on first run. See `config.example.toml`. Everything in
-it can also be changed in the settings window. Logs: `%APPDATA%\lpctl\logs\lpctl.log`.
+Settings live in `%APPDATA%\lpctl\config.toml`. lpctl creates the file on first run and rewrites it whenever you change something, so comments you add get lost. Use the settings window. `config.example.toml` documents every key.
 
-## Adding a mode
+Logs go to `%APPDATA%\lpctl\logs\lpctl.log`. That file is rotated at 1 MB and three old copies are kept. It records device connects and disconnects, audio device changes, mode switches and errors. It doesn't log per frame.
 
-Create `src/lpctl/modes/<name>.py` with a `@register`ed `Mode` subclass whose `name` is `<name>`.
-It then shows up under Settings > Top buttons. Modes draw into a `Frame` (8x8 grid plus 8 side
-and 8 top LEDs, each a `(red, green)` pair from 0 to 3) and never touch MIDI. Shared resources
-(audio capture, media info) are services listed in `Mode.services`, and they only run while a
-mode that needs them is active.
+## Docs
+
+- [Macro pad](docs/macro-pad.md): actions, key names, colours, examples.
+- [Audio](docs/audio.md): capture, gain, single-app capture, BPM, auto-cycle.
+- [Writing a mode](docs/writing-a-mode.md): adding your own mode.
+- [Troubleshooting](docs/troubleshooting.md)
+- [Changelog](CHANGELOG.md)
 
 ## Licence
 
-MIT
+MIT. See [LICENSE](LICENSE).

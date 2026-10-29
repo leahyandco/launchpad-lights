@@ -1,0 +1,59 @@
+# Troubleshooting
+
+Check the log first: `%APPDATA%\lpctl\logs\lpctl.log`, or Settings > General > Open logs. lpctl logs every connect, disconnect, device change and error.
+
+## Launchpad not found
+
+The log says `No MIDI output matching 'Launchpad Mini'`.
+
+Run `uv run lpctl --list-ports`. If no Launchpad is listed, Windows hasn't picked it up. Try another USB port or cable, and check that it shows in Device Manager under "Sound, video and game controllers". If Windows lists it under a different name, set `port_name` in `[device]` to part of that name.
+
+## Port blocked
+
+The log says `Found 'Launchpad Mini 1' but could not open it`.
+
+Another app has the port. Windows only allows one. The usual cause is Ableton, Novation Components, a DAW or a second copy of lpctl. Close it. lpctl keeps retrying and connects on its own once the port is free.
+
+## LEDs work, buttons don't
+
+Windows exposes input and output as separate ports. If the log says `Opened output but not input`, something else has the input port. Same fix as above.
+
+## Visualiser is flat
+
+1. Check the status line at the top of the settings window. It shows which device or app lpctl is capturing.
+2. If it's capturing the wrong device, make sure the right output is the Windows default. Then wait 3 seconds of silence, or restart lpctl.
+3. If Capture from is set to an app, make sure that app is the one playing. Set it back to System to rule it out.
+4. If the bars move but never fill, raise Gain or lower Range in Settings > Audio.
+5. If the bars flicker with nothing playing, raise the noise gate.
+
+After 30 seconds of silence the visualiser switches to a dim idle animation. That's normal.
+
+## Single-app capture fails
+
+`<app>.exe is not running`: the app isn't running, or the name is wrong. Pick it from the list instead of typing it.
+
+`Process loopback activation failed`: Windows is older than 10 2004. Update Windows or use System capture.
+
+## Now playing shows nothing
+
+Now playing reads Windows media sessions. It only shows something if the app shows up in the volume flyout's media controls. Spotify, Chrome, Edge, Firefox and most media apps do. Some games and old players don't.
+
+## Mic mute pad is dim amber
+
+Windows reports no default recording device. Plug one in or set one in Sound settings. The pad updates within half a second.
+
+## Hotkey macro does nothing
+
+The keystroke goes to the focused window. If that window belongs to an app running as administrator and lpctl isn't, Windows blocks the input. That's Windows UI isolation, and lpctl can't get around it. Use a global hotkey that the target app registers, or run lpctl at the same privilege level.
+
+## Start with Windows doesn't start
+
+The registry entry points at this folder's `.venv`. If you moved or recloned the folder, or deleted `.venv`, untick and retick Start with Windows. Check `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\lpctl` if you want to see the exact command.
+
+## LEDs lag or tear
+
+The visualiser runs at 40 fps by default, and big changes are sent as a single rapid update. If it can't keep up on your machine, lower `fps` in `[visualiser]`. If the LEDs show garbage after a big change, set `rapid_update = false` in `[device]`. That's slower, but every LED is addressed individually.
+
+## Nothing above helped
+
+Run `uv run lpctl --no-gui -v` from a terminal for debug logging. Then run `uv run lpctl --test` to rule out the hardware. If every LED lights in every colour and every press is echoed, the Launchpad is fine.
