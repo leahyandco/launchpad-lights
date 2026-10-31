@@ -122,6 +122,8 @@ Scrolling text uses a small 3x5 font by default, which fits about two characters
 
 ## Settings window
 
+<p align="center"><img src="docs/media/settings.png" width="760" alt="The Launchpad Lights settings window: live preview with side-button labels, mode list, and the Visualiser tab"></p>
+
 The preview on the left mirrors the Launchpad live. Clicking it works the same as pressing the real buttons. Next to the side buttons it lists what each one does in the current mode.
 
 The line at the top shows whether the Launchpad is connected, with the reason when it isn't, and what audio is being captured.
