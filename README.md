@@ -1,5 +1,7 @@
 # Launchpad Lights
 
+<p align="center"><img src="docs/media/spectrum.gif" width="240" alt="Spectrum bars visualiser on a Launchpad Mini"></p>
+
 Launchpad Lights turns an original Novation Launchpad Mini into a desktop controller for Windows. It does audio visualisation, now playing, a macro pad, and a clock with a Pomodoro timer. It runs from the system tray.
 
 It targets the red/green Launchpad Mini (MK1 and MK2). The Mini MK3, Launchpad X and other RGB models use a different protocol and are not supported.
@@ -15,6 +17,45 @@ It targets the red/green Launchpad Mini (MK1 and MK2). The Mini MK3, Launchpad X
 | Test pattern | Lights every LED in every colour and echoes every button press. Use it to check the hardware. |
 
 You can unplug the Launchpad, switch from headphones to speakers, or restart Spotify. Launchpad Lights recovers on its own within a few seconds.
+
+## Visualiser views
+
+Filmed on a real Launchpad Mini playing music. Side buttons 1-6 pick the first six views directly, and side button 7 cycles through the rest.
+
+<table>
+<tr>
+<td align="center"><img src="docs/media/spectrum.gif" width="180" alt="Spectrum bars"><br><b>1. Spectrum bars</b></td>
+<td align="center"><img src="docs/media/mirrored.gif" width="180" alt="Mirrored"><br><b>2. Mirrored</b></td>
+<td align="center"><img src="docs/media/spectrogram.gif" width="180" alt="Spectrogram"><br><b>3. Spectrogram</b></td>
+<td align="center"><img src="docs/media/vu.gif" width="180" alt="VU meter"><br><b>4. VU meter</b></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/media/beat.gif" width="180" alt="Beat pulse"><br><b>5. Beat pulse</b></td>
+<td align="center"><img src="docs/media/fire.gif" width="180" alt="Fire"><br><b>6. Fire</b></td>
+<td align="center"><img src="docs/media/radial.gif" width="180" alt="Radial"><br><b>7. Radial</b></td>
+<td align="center"><img src="docs/media/fountain.gif" width="180" alt="Fountain"><br><b>8. Fountain</b></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/media/sparkle.gif" width="180" alt="Sparkle"><br><b>9. Sparkle</b></td>
+<td align="center"><img src="docs/media/plasma.gif" width="180" alt="Plasma"><br><b>10. Plasma</b></td>
+<td align="center"><img src="docs/media/centre.gif" width="180" alt="Centre spectrum"><br><b>11. Centre spectrum</b></td>
+<td align="center"><img src="docs/media/horizontal.gif" width="180" alt="Horizontal bars"><br><b>12. Horizontal bars</b></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/media/dots.gif" width="180" alt="Bouncing dots"><br><b>13. Bouncing dots</b></td>
+<td></td><td></td><td></td>
+</tr>
+</table>
+
+## Other modes
+
+<table>
+<tr>
+<td align="center"><img src="docs/media/now-playing.gif" width="180" alt="Now playing"><br><b>Now playing</b><br>Title in amber, artist in green.</td>
+<td align="center"><img src="docs/media/clock.gif" width="180" alt="Scrolling clock"><br><b>Clock</b><br>Hours, minutes and a seconds dot.</td>
+<td align="center"><img src="docs/media/macro-pad.png" width="180" alt="Macro pad"><br><b>Macro pad</b><br>The default page 1 layout.</td>
+</tr>
+</table>
 
 ## Requirements
 

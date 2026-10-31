@@ -6,3 +6,7 @@ dist/
 build/
 .uv-cache/
 report.xml
+
+# Raw screen recordings of the effects. Only the trimmed GIFs in docs/media go in the repo.
+video/
+videos/
