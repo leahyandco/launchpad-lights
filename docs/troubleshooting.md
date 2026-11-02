@@ -2,6 +2,10 @@
 
 Check the log first. It's at `%APPDATA%\Launchpad Lights\logs\launchpad-lights.log`, or click Settings > General > Open logs. Launchpad Lights logs every connect, disconnect, device change and error.
 
+## "Windows protected your PC"
+
+That's Windows SmartScreen. It warns about any exe that isn't code-signed and that it hasn't seen many people run, which is most small free apps. It's fine to get past it. Click **More info**, then **Run anyway**. Windows only asks the first time.
+
 ## Launchpad not found
 
 The status line at the top of the settings window says "Launchpad not found", and the log says `No MIDI output matching 'Launchpad Mini'`.

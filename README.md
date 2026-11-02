@@ -24,7 +24,7 @@ You need Windows 10 or 11.
 1. Plug in the Launchpad. The driver Windows installs by itself is fine, you don't need Novation's.
 2. Close Ableton, Novation Components or any other music software that might be using the Launchpad.
 3. Download `LaunchpadLights.exe` from the [latest release](https://github.com/leahyandco/launchpad-lights/releases/latest). Put it somewhere it can stay, like a folder in Documents.
-4. Double-click it. It isn't code-signed, so Windows shows "Windows protected your PC" the first time. Click **More info**, then **Run anyway**.
+4. Double-click it. The exe isn't code-signed, so Windows SmartScreen will probably say "Windows protected your PC" the first time. That's expected and it's fine to run it. Click **More info**, then **Run anyway**.
 5. The settings window opens and an icon appears in the system tray, next to the clock. If you can't see the icon, click the **^** arrow.
 6. Play some music. The Launchpad starts on the visualiser.
 
@@ -151,7 +151,7 @@ Logs go to `%APPDATA%\Launchpad Lights\logs\launchpad-lights.log`. The file roll
 
 ## Something not working?
 
-- **"Windows protected your PC"**: the exe isn't code-signed. Click **More info**, then **Run anyway**.
+- **"Windows protected your PC"**: that's SmartScreen. It shows up because the exe isn't code-signed, and it's fine to get past it. Click **More info**, then **Run anyway**.
 - **"Launchpad not found"**: check it's plugged in, or try another USB port or cable. The line under it lists the MIDI devices Windows can see. If the Launchpad isn't in that list, Windows hasn't picked it up.
 - **"Launchpad is in use by another app"**: close Ableton, Novation Components or your DAW. Launchpad Lights connects by itself once the Launchpad is free.
 - **"Launchpad Lights is already running"**: it's in the tray. Click the **^** arrow next to the clock.
