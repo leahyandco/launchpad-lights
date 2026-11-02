@@ -28,7 +28,7 @@ print("MIDI outputs:", outs)
 print("MIDI inputs: ", ins)
 out_name, in_name = find(outs), find(ins)
 if not out_name:
-    sys.exit("No Launchpad output port found. Check USB / Novation driver.")
+    sys.exit("No Launchpad output port found. Check the USB cable, or try another USB port.")
 try:
     out = mido.open_output(out_name)
     inp = mido.open_input(in_name) if in_name else None

@@ -301,7 +301,7 @@ class MainWindow:
         ttk.Button(src, text="Refresh", command=self._refresh_sources).grid(row=0, column=1, padx=(6, 0))
         ttk.Label(src, foreground=HINT_FG, wraplength=self.px(330), justify="left", text=(
             "Pick an app to visualise only its audio (Windows 10 2004 or later). "
-            "The list shows apps that are making sound. You can also type an .exe name and press Enter.")
+            "The list shows apps that have played sound recently. You can also type an .exe name and press Enter.")
                   ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(6, 0))
         self._refresh_sources()
 
@@ -486,7 +486,8 @@ class MainWindow:
         port.bind("<FocusOut>", lambda e: self._set_port())
         self._commits.append(self._set_port)
         ttk.Label(adv, foreground=HINT_FG, wraplength=self.px(330), justify="left",
-                  text="Part of the port name, as shown by --list-ports. Used on the next reconnect.").grid(
+                  text="Part of the port name. If the Launchpad isn't found, the status line lists the names "
+                       "Windows can see. Used on the next reconnect.").grid(
             row=6, column=0, columnspan=3, sticky="w")
 
         row = ttk.Frame(tab)

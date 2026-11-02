@@ -72,9 +72,12 @@ class LaunchpadDevice:
             self._problem = problem
 
     def _try_open(self) -> None:
-        out_name = find_port(mido.get_output_names(), self.port_name)
+        outputs = mido.get_output_names()
+        out_name = find_port(outputs, self.port_name)
         if not out_name:
-            self._report(f"No MIDI output matching {self.port_name!r}. Is the Launchpad plugged in?", "missing")
+            found = ", ".join(outputs) or "none"
+            self._report(f"No MIDI output matching {self.port_name!r}. Is the Launchpad plugged in? "
+                         f"MIDI outputs Windows can see: {found}.", "missing")
             return
         in_name = find_port(mido.get_input_names(), self.port_name)
         try:
