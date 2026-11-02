@@ -1,12 +1,17 @@
 # Troubleshooting
 
-Check the log first: `%APPDATA%\Launchpad Lights\logs\launchpad-lights.log`, or Settings > General > Open logs. Launchpad Lights logs every connect, disconnect, device change and error.
+Check the log first. It's at `%APPDATA%\Launchpad Lights\logs\launchpad-lights.log`, or click Settings > General > Open logs. Launchpad Lights logs every connect, disconnect, device change and error.
 
 ## Launchpad not found
 
-The log says `No MIDI output matching 'Launchpad Mini'`.
+The status line at the top of the settings window says "Launchpad not found", and the log says `No MIDI output matching 'Launchpad Mini'`.
 
-Run `uv run launchpad-lights --list-ports`. If no Launchpad is listed, Windows hasn't picked it up. Try another USB port or cable, and check that it shows in Device Manager under "Sound, video and game controllers". If Windows lists it under a different name, set `port_name` in `[device]` to part of that name.
+Both also list the MIDI outputs Windows can see. If no Launchpad is in that list, Windows hasn't picked it up:
+
+1. Try another USB port or cable. Plug it straight into the PC, not a hub.
+2. Open Device Manager and look under "Sound, video and game controllers". The Launchpad should be there.
+
+If the Launchpad is in the list under a different name, put part of that name in Settings > General > Advanced > MIDI port name.
 
 ## Port blocked
 
@@ -18,7 +23,7 @@ Newer Windows 11 builds let several apps share the port, so you won't see this e
 
 ## "Launchpad Lights is already running"
 
-Launchpad Lights allows only one copy of itself at a time. The other copy is in the tray, so open it from there or quit it first. If no tray icon is visible, check Task Manager for a leftover `LaunchpadLights.exe` or `pythonw.exe`.
+Launchpad Lights allows only one copy of itself at a time. The other copy is in the tray, so open it from there or quit it first. If no tray icon is visible, check Task Manager for a leftover `LaunchpadLights.exe`. When running from source it shows as `pythonw.exe`, `python.exe` or `launchpad-lights.exe`.
 
 ## LEDs work, buttons don't
 
@@ -26,8 +31,8 @@ Windows exposes input and output as separate ports. If the log says `Opened outp
 
 ## Visualiser is flat
 
-1. Check the status line at the top of the settings window. It shows which device or app Launchpad Lights is capturing.
-2. If it's capturing the wrong device, make sure the right output is the Windows default. Then wait 3 seconds of silence, or restart launchpad_lights.
+1. Switch to the Visualiser, then check the status line at the top of the settings window. It shows which device or app Launchpad Lights is capturing.
+2. If it's capturing the wrong device, make sure the right output is the Windows default. Then wait 3 seconds of silence, or restart Launchpad Lights.
 3. If Capture from is set to an app, make sure that app is the one playing. Set it back to System to rule it out.
 4. If the bars move but never fill, raise Gain or lower Range in Settings > Audio.
 5. If the bars flicker with nothing playing, raise the noise gate.
@@ -54,11 +59,15 @@ The keystroke goes to the focused window. If that window belongs to an app runni
 
 ## Start with Windows doesn't start
 
-The registry entry points at this folder's `.venv`. If you moved or recloned the folder, or deleted `.venv`, untick and retick Start with Windows. Check `HKCU\Software\Microsoft\Windows\CurrentVersion\Run\Launchpad Lights` if you want to see the exact command.
+Start with Windows remembers where `LaunchpadLights.exe` (or your source folder) was when you ticked the box. If you've moved it since, start Launchpad Lights once from the new place and it fixes the entry itself. If that doesn't do it, untick and retick Start with Windows.
+
+To see the exact command, look at the `Launchpad Lights` value under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` in regedit.
 
 ## LEDs lag or tear
 
-The visualiser runs at 40 fps by default, and big changes are sent as a single rapid update. If it can't keep up on your machine, lower `fps` in `[visualiser]`. If the LEDs show garbage after a big change, set `rapid_update = false` in `[device]`. That's slower, but every LED is addressed individually.
+The visualiser runs at 40 fps by default, and big changes are sent as a single rapid update. If it can't keep up on your machine, lower Visualiser frame rate in Settings > General > Advanced.
+
+If the LEDs show garbage after a big change, turn off rapid updates. That's slower, but every LED is addressed individually. It's only in the config file, so quit Launchpad Lights first, set `rapid_update = false` under `[device]` in `config.toml`, then start it again.
 
 ## Settings went back to defaults
 
@@ -66,8 +75,12 @@ The visualiser runs at 40 fps by default, and big changes are sent as a single r
 
 ## "Launchpad Lights hit an error and stopped"
 
-The render loop crashed. The full traceback is in the log. Restart launchpad_lights. If it happens again, the log entry is what's needed to fix it.
+The render loop crashed. The full error is in the log. Restart Launchpad Lights. If it happens again, [open an issue](https://github.com/leahyandco/launchpad-lights/issues/new/choose) and attach the log.
 
 ## Nothing above helped
 
-Run `uv run launchpad-lights --no-gui -v` from a terminal for debug logging. Then run `uv run launchpad-lights --test` to rule out the hardware. If every LED lights in every colour and every press is echoed, the Launchpad is fine.
+Rule out the hardware. Select Test pattern (top button 8 by default). It walks every LED through red, green and amber, then every colour level, and any button you hold lights red. If all of that works, the Launchpad is fine.
+
+If you're running from source, quit the tray copy first and run `uv run launchpad-lights --test`. It does the same and prints every button press.
+
+Still stuck? [Open an issue](https://github.com/leahyandco/launchpad-lights/issues/new/choose) with the log attached.

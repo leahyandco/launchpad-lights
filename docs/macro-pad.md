@@ -14,7 +14,7 @@ Use Settings > Macro pad.
 4. Hit Test to try it without saving. A hotkey test waits 2 seconds so you can click the window it should go to.
 5. Hit Save. Unknown key names and empty commands are rejected with a message under the buttons.
 
-Clear removes the button. Changes go live on the device as soon as you save. Browse picks a program or file for `run` and `url` actions. Switching page drops the selection, so a save never lands on a pad you can't see.
+Clear removes the button, and so does saving with the action set to (none). Changes go live on the device as soon as you save. Browse picks a program or file for `run` and `url` actions. Switching page drops the selection, so a save never lands on a pad you can't see.
 
 You can also edit `[[macro_pad.buttons]]` in `config.toml` by hand while Launchpad Lights isn't running. Each button looks like this:
 
@@ -50,6 +50,8 @@ Letters and digits are written as themselves: `a`, `7`. Join keys with `+`.
 | Navigation | `left`, `right`, `up`, `down`, `home`, `end`, `pageup`, `pagedown`, `insert`, `delete` |
 | Other | `esc`, `enter`, `tab`, `space`, `backspace`, `printscreen`, `pause`, `capslock` |
 | Media | `play_pause`, `next`, `prev`, `stop`, `mute`, `vol_up`, `vol_down` |
+
+These other spellings work too: `control`, `windows`, `escape`, `return`, `del`, `ins`, `pgup`, `pgdn`, `prtsc`.
 
 `f13` to `f24` are worth using. No keyboard has them, so they never clash with anything, and most apps let you bind them as global hotkeys. Bind a Discord or OBS hotkey to `ctrl+alt+f13` and put that on a pad.
 
@@ -95,8 +97,9 @@ The Launchpad Mini has a red and a green LED under each pad. Every colour is a m
 | `red_dim` | 1 | 0 |
 | `amber_dim` | 1 | 1 |
 | `green_dim` | 0 | 1 |
+| `off` | 0 | 0 |
 
-Use dim colours for buttons you rarely press, so the important ones stand out.
+Use dim colours for buttons you rarely press, so the important ones stand out. An `off` pad still works, it just isn't lit.
 
 ## Defaults
 

@@ -1,6 +1,8 @@
 # Writing a mode
 
-A mode is one Python file in `src/launchpad_lights/modes/`. Drop it in, assign it to a top button in Settings > Top buttons, and it's live. Nothing else needs registering.
+A mode is one Python file in `src/launchpad_lights/modes/`. Drop it in, restart Launchpad Lights, and assign it to a top button in Settings > Top buttons. Nothing else needs registering.
+
+This needs the source version (see Run from source in the README). The exe has its modes built in, so a new mode only gets into an exe if you build one yourself.
 
 Modes never talk to MIDI. They draw into a frame, and the app works out which LEDs changed and sends only those. That keeps MIDI traffic down and means you can build and test a mode without the Launchpad plugged in.
 
@@ -34,18 +36,21 @@ class Paint(Mode):
             frame.leds[i] = (3, 3)
 ```
 
-Run it without hardware:
+Try it:
 
 ```
-uv run launchpad-lights --simulate --mode paint
+uv run launchpad-lights --mode paint
 ```
+
+You don't need the Launchpad plugged in. Click the pads in the preview on the left of the settings window and they act like the real buttons. There's also `--simulate`, which draws the grid in the terminal, but it only has keys for the top and side buttons, so it can't press pads.
 
 ## The Mode class
 
 | Member | Purpose |
 |---|---|
 | `name` | Mode name. Must match the module name, because that's how the registry finds it. |
-| `fps` | Target frame rate. You can change it at runtime. The visualiser drops to 15 fps when idle. |
+| `fps` | Target frame rate, from 1 to 120. You can change it at runtime. The visualiser drops to 15 fps when idle. |
+| `side_labels` | Up to 8 short strings saying what each side button does. The settings window shows them next to the preview. |
 | `services` | Tuple of services the mode needs, such as `("audio",)`. The app starts them before `on_enter` and stops them after `on_exit` if nothing else needs them. |
 | `on_enter()` | Called when the mode becomes active. |
 | `on_exit()` | Called when the mode is switched away from, or when the app enters standby or quits. |
@@ -69,7 +74,7 @@ frame.set_side(i, (0, 3))     # right-hand side button i, 0-7 from the top
 frame.leds[i] = (3, 3)        # raw index: 0-63 grid row by row, 64-71 side, 72-79 top
 ```
 
-Don't draw on the top row. The app draws the mode indicator there.
+Don't draw on the round top buttons (`frame.leds[72:80]`). The app draws the mode indicator there. The top row of the grid is yours.
 
 There's no real RGB. Red and green mix to orange, amber and yellow. See the colour table in [macro-pad.md](macro-pad.md).
 
@@ -116,15 +121,26 @@ To add a service, write a class with `start()` and `stop()` and register a facto
 
 ## Text
 
-`launchpad_lights.launchpad.font.Scroller` scrolls text in a 5x7 font. Text 8 columns wide or less is centred and doesn't move.
+`launchpad_lights.launchpad.font.Scroller` scrolls text across the grid. Text 8 columns wide or less is centred and doesn't move.
+
+There are 2 fonts. `"small"` is 3x5 and capitals only, so lowercase comes out in capitals. `"large"` is 5x7 with upper and lower case. Use whichever the user picked in Settings > General, the same as the built-in modes do:
 
 ```python
 from launchpad_lights.launchpad.font import Scroller
 
-self.scroller = Scroller(speed=10)                         # columns per second
-self.scroller.set([("Hello ", (3, 3)), ("world", (0, 3))])  # call every frame; it only restarts when the text changes
-self.scroller.draw(frame, dt)                              # rows 0-6; row 7 is yours
+def __init__(self, ctx):
+    super().__init__(ctx)
+    self.scroller = Scroller(speed=10, font=ctx.config.section("app").get("text_size", "small"))  # speed in columns per second
+
+def on_config_changed(self):
+    self.scroller.set_font(self.ctx.config.section("app").get("text_size", "small"))
+
+def render(self, frame, dt):
+    self.scroller.set([("Hello ", (3, 3)), ("world", (0, 3))])  # call every frame; it only restarts when the text changes
+    self.scroller.draw(frame, dt)
 ```
+
+Small text sits on rows 1-5 and large text on rows 0-6. Pass `top=` to `draw` to move it. `set(..., keep_position=True)` carries on from the current scroll position when new text is the same width, which is how the clock updates without jumping back to the start.
 
 ## Testing
 

@@ -1,22 +1,25 @@
 # Lives at %APPDATA%\Launchpad Lights\config.toml (created automatically on first run).
 # The app rewrites this file when settings change, so comments are lost.
+# Everything here except rapid_update, retry_seconds, fmin and fmax is also in the settings window.
+# Quit Launchpad Lights before editing the file by hand.
 
 [device]
-port_name = "Launchpad Mini"   # substring match on the MIDI port name
-rapid_update = true            # use rapid LED update for big frame changes
-retry_seconds = 2.0            # reconnect / blocked-port retry interval
+port_name = "Launchpad Mini"   # part of the MIDI port name
+rapid_update = true            # use rapid LED update for big frame changes (read at startup)
+retry_seconds = 2.0            # reconnect / blocked-port retry interval (read at startup)
 
 [app]
-startup_mode = "visualiser"
+startup_mode = "visualiser"    # the mode it starts in; saved every time you switch, so it's the last one used
 # Top buttons 1-8. Empty string = unassigned. Hold button 8 for 1 s = standby.
 modes = ["visualiser", "now_playing", "macro_pad", "clock", "", "", "", "test_pattern"]
 standby_hold_seconds = 1.0
+text_size = "small"            # scrolling text: "small" (3x5, capitals) or "large" (5x7)
 
 [visualiser]
 sub_mode = 1                   # view number, see the README
 fps = 40
-fmin = 40.0
-fmax = 16000.0
+fmin = 40.0                    # lowest band, Hz (read at startup)
+fmax = 16000.0                 # highest band, Hz (read at startup)
 source = ""                    # "" = whole system, or an app such as "Spotify.exe"
 sensitivity = "medium"         # auto-gain speed: low / medium / high
 auto_gain = true               # off = fixed reference level, gain_db does all the work
@@ -33,7 +36,7 @@ idle_style = "animation"       # "animation" or "blank"
 scroll_speed = 10.0            # columns per second
 
 [clock]
-view = 1                       # 1 scrolling clock, 2 binary clock, 3 Pomodoro
+view = 1                       # 1 scrolling clock, 2 binary clock, 3 Pomodoro, 4 flip clock
 24h = true
 work_minutes = 25.0
 break_minutes = 5.0
@@ -43,9 +46,10 @@ long_break_minutes = 15.0
 page = 1
 
 # One table per button. page 1-8, x/y 0-7 from the top-left.
+# These 2 are examples. Listing any buttons replaces the whole default layout, so list every button you want.
 # action: media (play_pause/next/prev/stop/mute/vol_up/vol_down), key ("ctrl+shift+m"),
 #         run (command line), url (URL or file), mic_mute
-# colour: red, orange, light_orange, amber, yellow, lime, green, red_dim, amber_dim, green_dim
+# colour: red, orange, light_orange, amber, yellow, lime, green, red_dim, amber_dim, green_dim, off
 [[macro_pad.buttons]]
 page = 1
 x = 1
