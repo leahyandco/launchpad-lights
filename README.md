@@ -212,4 +212,4 @@ Pull requests are welcome too. If it's something big, open an issue first so we 
 
 MIT. See [LICENSE](LICENSE).
 
-Maintained by [Leahy & Co](https://leahyandco.com.au/?utm_source=github). Need something like this built? I take on paid work.
+Maintained by [Leahy & Co](https://leahyandco.com.au/?utm_source=github).
